@@ -1,3 +1,2 @@
-bin/
-compiled/
-test-db
+/bin
+/test/compiled
