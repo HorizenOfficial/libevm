@@ -6,6 +6,12 @@ For simplicity all exported library functions take one parameter and return one 
 
 ## Build
 
+To build both linux and Windows binaries have Docker installed and execute `./build.sh`.
+
+To build linux and Windows binaries manually see the following sections.
+
+### linux
+
 The project can be build via Maven or the standard Go tooling:
 
 `go build -buildmode c-shared -o bin/linux-x86-64/libevm.so`
