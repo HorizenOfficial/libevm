@@ -23,8 +23,8 @@ As defined in the file `go.mod`, the required minimum version of Go is `1.18`. W
 Have Docker installed and run this in the libevm directory:
 
 ```
-docker build -t horizen/libevm:windows-amd64 .
-docker run --rm -v "$PWD":/libevm -w /libevm horizen/libevm:windows-amd64 /bin/sh -c "go build -buildmode c-shared -o bin/windows-amd64/libevm.dll"
+docker build -t horizen/libevm:win32-x86-64 .
+docker run --rm -v "$PWD":/libevm -w /libevm horizen/libevm:win32-x86-64 /bin/sh -c "go build -buildmode c-shared -o bin/win32-x86-64/libevm.dll"
 ```
 
 ## Tests
