@@ -17,6 +17,9 @@ import (
 // instance holds a singleton of lib.Service
 var instance *lib.Service
 
+// global callback function pointer
+var proxy C.callbackProxy = nil
+
 // initialize logger
 var logger = log.NewGlogHandler(log.FuncHandler(logToCallback))
 var logFormatter = log.JSONFormatEx(false, false)
@@ -26,7 +29,7 @@ func callbackProxy(handle int, args string) string {
 	argsStr := C.CString(args)
 	defer C.free(unsafe.Pointer(argsStr))
 	var result *C.char
-	result = C.invokeCallbackProxy(C.int(handle), argsStr)
+	result = C.invokeCallbackProxy(proxy, C.int(handle), argsStr)
 	defer C.free(unsafe.Pointer(result))
 	if result == nil {
 		return ""
@@ -64,14 +67,14 @@ func main() {
 }
 
 //export SetupLogging
-func SetupLogging(handle int, level *C.char) {
+func SetupLogging(handle C.int, level *C.char) {
 	parsedLevel, err := log.LvlFromString(C.GoString(level))
 	if err != nil {
 		log.Error("unable to parse log level", "error", err)
 		return
 	}
 	logger.Verbosity(parsedLevel)
-	logCallbackHandle = handle
+	logCallbackHandle = int(handle)
 }
 
 //export Invoke
@@ -81,4 +84,14 @@ func Invoke(method *C.char, args *C.char) *C.char {
 		return nil
 	}
 	return C.CString(jsonString)
+}
+
+//export Free
+func Free(ptr unsafe.Pointer) {
+	C.free(ptr)
+}
+
+//export SetCallbackProxy
+func SetCallbackProxy(f C.callbackProxy) {
+	proxy = f
 }
