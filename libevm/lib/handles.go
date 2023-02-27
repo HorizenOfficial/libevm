@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"sync"
 )
 
 var ErrInvalidHandle = errors.New("invalid handle")
@@ -11,16 +12,20 @@ var ErrInvalidHandle = errors.New("invalid handle")
 type Handles[T comparable] struct {
 	used    map[int]T
 	current int
+	mutex   *sync.RWMutex
 }
 
 func NewHandles[T comparable]() *Handles[T] {
 	return &Handles[T]{
 		used:    make(map[int]T),
 		current: 0,
+		mutex:   &sync.RWMutex{},
 	}
 }
 
 func (h *Handles[T]) Add(obj T) int {
+	h.mutex.Lock()
+	defer h.mutex.Unlock()
 	for {
 		// wrap around
 		if h.current == math.MaxInt32 {
@@ -37,6 +42,8 @@ func (h *Handles[T]) Add(obj T) int {
 }
 
 func (h *Handles[T]) Get(handle int) (error, T) {
+	h.mutex.RLock()
+	defer h.mutex.RUnlock()
 	if obj, exists := h.used[handle]; exists {
 		return nil, obj
 	} else {
@@ -47,5 +54,7 @@ func (h *Handles[T]) Get(handle int) (error, T) {
 }
 
 func (h *Handles[T]) Remove(handle int) {
+	h.mutex.Lock()
+	defer h.mutex.Unlock()
 	delete(h.used, handle)
 }
