@@ -28,13 +28,13 @@ var logCallbackHandle int
 func callbackProxy(handle int, args string) string {
 	argsStr := C.CString(args)
 	defer C.free(unsafe.Pointer(argsStr))
-	var result *C.char
-	result = C.invokeCallbackProxy(proxy, C.int(handle), argsStr)
-	defer C.free(unsafe.Pointer(result))
-	if result == nil {
+	var returnBuffer = C.malloc(1024)
+	defer C.free(returnBuffer)
+	var result C.int = C.invokeCallbackProxy(proxy, C.int(handle), argsStr, (*C.char)(returnBuffer))
+	if result == 0 {
 		return ""
 	}
-	return C.GoString(result)
+	return C.GoStringN((*C.char)(returnBuffer), result)
 }
 
 func logToCallback(r *log.Record) error {
@@ -86,8 +86,8 @@ func Invoke(method *C.char, args *C.char) *C.char {
 	return C.CString(jsonString)
 }
 
-//export Free
-func Free(ptr unsafe.Pointer) {
+//export FreeThis
+func FreeThis(ptr unsafe.Pointer) {
 	C.free(ptr)
 }
 

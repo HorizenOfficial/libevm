@@ -1,6 +1,6 @@
 
 // callback function definition
-typedef char* (*callbackProxy)(int handle, char *args);
+typedef int (*callbackProxy)(int handle, char *args, char *buffer);
 
 // used by GO to invoke the callback, as GO cannot invoke C function pointers
-char* invokeCallbackProxy(callbackProxy proxy, int handle, char *args);
+int invokeCallbackProxy(callbackProxy proxy, int handle, char *args, char* buffer);

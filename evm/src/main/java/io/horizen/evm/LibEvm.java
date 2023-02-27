@@ -7,7 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 final class LibEvm {
-    static native void Free(Pointer ptr);
+    static native void FreeThis(Pointer ptr);
 
     private static native void SetCallbackProxy(LibEvmCallback.CallbackProxy callback);
 
@@ -72,7 +72,7 @@ final class LibEvm {
             return ptr.getString(0);
         } finally {
             // free the string pointer on the native end
-            LibEvm.Free(ptr);
+            FreeThis(ptr);
         }
     }
 
