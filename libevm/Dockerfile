@@ -1,4 +1,4 @@
-FROM rwgrim/msys2-cross
+FROM ubuntu:latest
 LABEL os=windows
 LABEL arch=amd64
 
@@ -10,16 +10,18 @@ ENV CGO_ENABLED=1
 ENV CC=x86_64-w64-mingw32-gcc
 ENV CXX=x86_64-w64-mingw32-g++
 ENV PATH="/go/bin:/usr/local/go/bin:${PATH}"
-ENV PKG_CONFIG_PATH=/windows/mingw64/lib/pkgconfig
-ENV MSYS2_ARCH=x86_64
 
 # install build dependencies
 RUN set -ex \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
         build-essential \
+        ca-certificates \
         gcc-mingw-w64-x86-64 \
+        wget \
     && rm -rf /var/lib/apt/lists/*
+
+RUN update-ca-certificates
 
 # install golang
 RUN set -ex; \
