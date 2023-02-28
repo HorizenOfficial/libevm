@@ -26,6 +26,11 @@ func NewHandles[T comparable]() *Handles[T] {
 func (h *Handles[T]) Add(obj T) int {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
+	// pedantic safety check for overflow: this is highly unlikely because there are 2**31-1 available handles,
+	// just the memory consumption alone will likely cause problems before this happens
+	if len(h.used) == math.MaxInt32 {
+		panic(fmt.Sprintf("out of handles, unable to add %T", obj))
+	}
 	for {
 		// wrap around
 		if h.current == math.MaxInt32 {
