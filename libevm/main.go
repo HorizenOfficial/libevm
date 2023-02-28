@@ -28,13 +28,13 @@ var logCallbackHandle int
 func callbackProxy(handle int, args string) string {
 	argsStr := C.CString(args)
 	defer C.free(unsafe.Pointer(argsStr))
-	var returnBuffer = C.malloc(1024)
-	defer C.free(returnBuffer)
-	var result C.int = C.invokeCallbackProxy(proxy, C.int(handle), argsStr, (*C.char)(returnBuffer))
-	if result == 0 {
+	var buffer = (*C.char)(C.calloc(1024, 1))
+	defer C.free(unsafe.Pointer(buffer))
+	var result C.int = C.invokeCallbackProxy(proxy, C.int(handle), argsStr, buffer)
+	if int(result) == 0 {
 		return ""
 	}
-	return C.GoStringN((*C.char)(returnBuffer), result)
+	return C.GoStringN(buffer, result)
 }
 
 func logToCallback(r *log.Record) error {
