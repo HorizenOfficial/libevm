@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM bitnami/minideb:buster
 LABEL os=windows
 LABEL arch=amd64
 
@@ -12,15 +12,9 @@ ENV CXX=x86_64-w64-mingw32-g++
 ENV PATH="/go/bin:/usr/local/go/bin:${PATH}"
 
 # install build dependencies
-RUN set -ex \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends \
-        build-essential \
-        ca-certificates \
-        gcc-mingw-w64-x86-64 \
-        wget \
-    && rm -rf /var/lib/apt/lists/*
+RUN install_packages ca-certificates build-essential gcc-mingw-w64-x86-64 wget
 
+# fix SSL issues down the line
 RUN update-ca-certificates
 
 # install golang
