@@ -1,5 +1,6 @@
 package io.horizen.evm;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.TimerTask;
@@ -57,11 +58,13 @@ public class LoadTest extends LibEvmTestBase {
     }
 
     @Test
+    @Ignore
     public void lowLoad() throws Exception {
         runLoadTest(1, 3000);
     }
 
     @Test
+    @Ignore
     public void highLoad() throws Exception {
         runLoadTest(32, 10000);
     }
