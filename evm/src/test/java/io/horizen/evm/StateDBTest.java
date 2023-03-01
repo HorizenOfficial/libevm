@@ -38,9 +38,9 @@ public class StateDBTest extends LibEvmTestBase {
             try (var statedb = new StateDB(db, Hash.ZERO)) {
                 var intermediateRoot = statedb.getIntermediateRoot();
                 assertEquals(
-                        "empty state should give the hash of an empty string as the root hash",
-                        StateDB.EMPTY_ROOT_HASH,
-                        intermediateRoot
+                    "empty state should give the hash of an empty string as the root hash",
+                    StateDB.EMPTY_ROOT_HASH,
+                    intermediateRoot
                 );
 
                 var committedRoot = statedb.commit();
@@ -50,7 +50,7 @@ public class StateDBTest extends LibEvmTestBase {
                 statedb.addBalance(origin, v1234);
                 assertEquals(v1234, statedb.getBalance(origin));
                 assertNotEquals("intermediate root should not equal committed root anymore", committedRoot,
-                        statedb.getIntermediateRoot()
+                    statedb.getIntermediateRoot()
                 );
                 rootWithBalance1234 = statedb.commit();
 
@@ -73,14 +73,14 @@ public class StateDBTest extends LibEvmTestBase {
             // Verify that automatic resource management worked and StateDB.close() was called.
             // If it was, the handle is invalid now and this should throw.
             assertThrows(
-                    Exception.class,
-                    () -> LibEvm.invoke("StateIntermediateRoot", new HandleParams(1), Hash.class).toBytes()
+                Exception.class,
+                () -> LibEvm.invoke("StateIntermediateRoot", new HandleParams(1), Hash.class).toBytes()
             );
         }
         // also verify that the database was closed
         assertThrows(
-                Exception.class,
-                () -> LibEvm.invoke("StateOpen", new OpenStateParams(1, Hash.ZERO), int.class)
+            Exception.class,
+            () -> LibEvm.invoke("StateOpen", new OpenStateParams(1, Hash.ZERO), int.class)
         );
 
         try (var db = new LevelDBDatabase(databaseFolder.getAbsolutePath())) {
@@ -102,10 +102,10 @@ public class StateDBTest extends LibEvmTestBase {
         final var origin = new Address("0xbafe3b6f2a19658df3cb5efca158c93272ff5cff");
         final var key = new Hash("0xbafe3b6f2a19658df3cb5efca158c93272ff5cff010101010101010102020202");
         final Hash[] values = {
-                new Hash("0x0000000000000000000000000000000000000000000000000000000000000000"),
-                new Hash("0x0000000000000000000000001234000000000000000000000000000000000000"),
-                new Hash("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"),
-                new Hash("0x00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff"),
+            new Hash("0x0000000000000000000000000000000000000000000000000000000000000000"),
+            new Hash("0x0000000000000000000000001234000000000000000000000000000000000000"),
+            new Hash("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"),
+            new Hash("0x00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff"),
         };
 
         Hash initialRoot;
@@ -162,9 +162,9 @@ public class StateDBTest extends LibEvmTestBase {
                 // make sure the account is not "empty"
                 statedb.setNonce(origin, BigInteger.ONE);
                 assertEquals(
-                        "reading a non-existent key should return all zeroes",
-                        Hash.ZERO,
-                        statedb.getStorage(origin, key)
+                    "reading a non-existent key should return all zeroes",
+                    Hash.ZERO,
+                    statedb.getStorage(origin, key)
                 );
                 // make sure this does not throw anymore and the value can be read correctly
                 statedb.setStorage(origin, key, validValue);
@@ -191,46 +191,46 @@ public class StateDBTest extends LibEvmTestBase {
         assertTrue("sender must be on access list", statedb.accessAccount(sender));
         assertTrue("destination must be on access list", statedb.accessAccount(destination));
         assertFalse(
-                "sender storage slot must not be on access list before first access",
-                statedb.accessSlot(sender, key1)
+            "sender storage slot must not be on access list before first access",
+            statedb.accessSlot(sender, key1)
         );
         assertTrue(
-                "sender storage slot must be on access list after first access",
-                statedb.accessSlot(sender, key1)
+            "sender storage slot must be on access list after first access",
+            statedb.accessSlot(sender, key1)
         );
         assertFalse(
-                "sender storage slot must not be on access list before first access",
-                statedb.accessSlot(sender, key2)
+            "sender storage slot must not be on access list before first access",
+            statedb.accessSlot(sender, key2)
         );
         assertTrue(
-                "sender storage slot must be on access list after first access",
-                statedb.accessSlot(sender, key2)
+            "sender storage slot must be on access list after first access",
+            statedb.accessSlot(sender, key2)
         );
 
         assertFalse(
-                "other account must not be on access list before first access",
-                statedb.accessAccount(other)
+            "other account must not be on access list before first access",
+            statedb.accessAccount(other)
         );
         assertTrue(
-                "other account must be on access list after first acccess",
-                statedb.accessAccount(other)
+            "other account must be on access list after first acccess",
+            statedb.accessAccount(other)
         );
         assertFalse(
-                "other storage slot must not be on access list before first access",
-                statedb.accessSlot(other, key1)
+            "other storage slot must not be on access list before first access",
+            statedb.accessSlot(other, key1)
         );
         assertTrue(
-                "other storage slot must be on access list after first access",
-                statedb.accessSlot(other, key1)
+            "other storage slot must be on access list after first access",
+            statedb.accessSlot(other, key1)
         );
     }
 
     @Test
     public void accessList() throws Exception {
-        final var accounts = new Address[]{
-                new Address("0x0011001100110011001100110011001100110011"),
-                new Address("0x0022002200220022002200220022002200220022"),
-                new Address("0x0033003300330033003300330033003300330033"),
+        final var accounts = new Address[] {
+            new Address("0x0011001100110011001100110011001100110011"),
+            new Address("0x0022002200220022002200220022002200220022"),
+            new Address("0x0033003300330033003300330033003300330033"),
         };
 
         try (var db = new MemoryDatabase()) {
@@ -278,15 +278,15 @@ public class StateDBTest extends LibEvmTestBase {
             try (var statedb = new StateDB(db, Hash.ZERO)) {
                 statedb.addBalance(address, BigInteger.TEN);
                 statedb.setStorage(
-                        address,
-                        Hash.ZERO,
-                        padToHash(RlpEncoder.encode(RlpString.create(bytes("94de74da73d5102a796559933296c73e7d1c6f37fb"))))
+                    address,
+                    Hash.ZERO,
+                    padToHash(RlpEncoder.encode(RlpString.create(bytes("94de74da73d5102a796559933296c73e7d1c6f37fb"))))
                 );
                 statedb.setStorage(
-                        address,
-                        new Hash((byte[]) Keccak256.hash(
-                                bytes("0000000000000000000000000000000000000000000000000000000000000001"))),
-                        padToHash(RlpEncoder.encode(RlpString.create(bytes("02"))))
+                    address,
+                    new Hash((byte[]) Keccak256.hash(bytes(
+                        "0000000000000000000000000000000000000000000000000000000000000001"))),
+                    padToHash(RlpEncoder.encode(RlpString.create(bytes("02"))))
                 );
 
                 statedb.commit();

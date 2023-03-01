@@ -65,7 +65,16 @@ public class EvmTest extends LibEvmTestBase {
 
                 // call "retrieve" on the contract to fetch the value we just set
                 result = Evm.Apply(
-                    statedb, addr2, contractAddress, null, funcRetrieve, gasLimit, gasPrice, null, new TraceOptions());
+                    statedb,
+                    addr2,
+                    contractAddress,
+                    null,
+                    funcRetrieve,
+                    gasLimit,
+                    gasPrice,
+                    null,
+                    new TraceOptions()
+                );
                 assertEquals("", result.evmError);
                 assertEquals(testValue, new Hash(result.returnData));
                 assertNotNull(result.tracerResult);

@@ -9,8 +9,11 @@ public class FixedSizeByteArray {
 
     protected FixedSizeByteArray(int length, byte[] bytes) {
         if (bytes.length != length) {
-            throw new IllegalArgumentException(
-                String.format("invalid length: want %d bytes got %d", length, bytes.length));
+            throw new IllegalArgumentException(String.format(
+                "invalid length: want %d bytes got %d",
+                length,
+                bytes.length
+            ));
         }
         this.length = length;
         // create a copy to make sure there is no outside reference to these bytes
@@ -22,9 +25,11 @@ public class FixedSizeByteArray {
             throw new IllegalArgumentException("hex string must be prefixed with " + PREFIX);
         }
         if (hex.length() != length * 2 + PREFIX.length()) {
-            throw new IllegalArgumentException(
-                String.format(
-                    "invalid length: want %d hex characters got %d", length * 2 + PREFIX.length(), hex.length()));
+            throw new IllegalArgumentException(String.format(
+                "invalid length: want %d hex characters got %d",
+                length * 2 + PREFIX.length(),
+                hex.length()
+            ));
         }
         this.length = length;
         this.bytes = Converter.fromHexString(hex.substring(2));
