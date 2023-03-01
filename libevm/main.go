@@ -32,6 +32,7 @@ func callbackProxy(handle int, args string) string {
 	if result == nil {
 		return ""
 	}
+	// make sure we free the memory allocated for the return value
 	defer C.free(unsafe.Pointer(result))
 	return C.GoString(result)
 }
