@@ -6,6 +6,7 @@ import com.sun.jna.Pointer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,21 +55,27 @@ abstract class LibEvmCallback implements AutoCloseable {
     }
 
     static class CallbackProxy implements Callback {
-        public int callback(int handle, Pointer msg, Pointer buffer) {
+        public Pointer callback(int handle, Pointer msg) {
             try {
                 // we do not need to free the Pointer here, as it is freed on the libevm side when the callback returns
                 var result = invoke(handle, msg.getString(0));
-                if (result == null) return 0;
-                // write result to return buffer
-                buffer.setString(0, result);
-                // return the number of characters written to the buffer
-                return result.length();
+                if (result == null) return null;
+                // allocate buffer on native side and write the string into it
+                var bytes = result.getBytes(StandardCharsets.UTF_8);
+                // plus one because the string needs to be null-terminated
+                var ptr = LibEvm.CreateBuffer(bytes.length + 1);
+                ptr.write(0, bytes, 0, bytes.length);
+                // make absolutely sure the string is null-terminated,
+                // the buffer is zero-initialized so this should be redundant
+                ptr.setByte(bytes.length, (byte) 0);
+                // note: this buffer is expected to be freed on the native side
+                return ptr;
             } catch (Exception e) {
                 // note: make sure we do not throw any exception here because this callback is called by native code
                 // for diagnostics we log the exception here
                 logger.warn("error while handling callback from libevm", e);
             }
-            return 0;
+            return null;
         }
     }
 
