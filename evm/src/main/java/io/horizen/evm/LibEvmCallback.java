@@ -65,9 +65,8 @@ abstract class LibEvmCallback implements AutoCloseable {
                 return result.length();
             } catch (Exception e) {
                 // note: make sure we do not throw any exception here because this callback is called by native code
-                // for diagnostics we log the exception here, if it is caused by malformed json it will also include
-                // the raw json string itself
-                logger.warn("received invalid log message data from libevm", e);
+                // for diagnostics we log the exception here
+                logger.warn("error while handling callback from libevm", e);
             }
             return 0;
         }
