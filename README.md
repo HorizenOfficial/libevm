@@ -1,6 +1,6 @@
 # libevm
 
-This projects implements a shared library and a Java wrapper for it. This library provides access to a standalone version of the go-ethereum EVM and its state storage layer StateDB and underlying LevelDB.
+This project contains a shared library and a Java wrapper for it. This library provides access to a standalone version of the go-ethereum EVM and its state storage layer StateDB and underlying LevelDB.
 
 ## Build
 
