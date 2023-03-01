@@ -1,0 +1,12 @@
+.idea/
+.settings/
+.vscode/
+log/
+/evm/target/
+/libevm/bin
+/libevm/test/compiled
+
+pom.xml.versionsBackup
+*.iml
+.project
+.classpath
