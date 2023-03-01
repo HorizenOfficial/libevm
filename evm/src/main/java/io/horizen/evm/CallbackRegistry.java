@@ -35,11 +35,11 @@ class CallbackRegistry {
         logger.trace("unregistered callback with handle {}: {}", handle, callback);
     }
 
-    static synchronized String invoke(int handle, String args) {
+    static synchronized LibEvmCallback get(int handle) {
         if (!callbacks.containsKey(handle)) {
             logger.warn("received callback with invalid handle: {}", handle);
             return null;
         }
-        return callbacks.get(handle).invoke(args);
+        return callbacks.get(handle);
     }
 }

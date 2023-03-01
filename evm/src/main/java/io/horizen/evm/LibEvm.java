@@ -126,19 +126,21 @@ final class LibEvm {
     private static class CallbackProxy implements Callback {
         public Pointer callback(int handle, Pointer msg) {
             try {
+                var callback = CallbackRegistry.get(handle);
+                if (callback == null) return null;
                 // we do not need to free the Pointer here, as it is freed on the libevm side when the callback returns
-                var result = CallbackRegistry.invoke(handle, msg.getString(0));
+                var result = callback.invoke(msg.getString(0));
                 if (result == null) return null;
                 var bytes = result.getBytes(StandardCharsets.UTF_8);
                 // allocate buffer on native side and write the string into it,
                 // length plus one because the string needs to be null-terminated
-                var ptr = LibEvm.CreateBuffer(bytes.length + 1);
-                ptr.write(0, bytes, 0, bytes.length);
+                var buffer = LibEvm.CreateBuffer(bytes.length + 1);
+                buffer.write(0, bytes, 0, bytes.length);
                 // make absolutely sure the string is null-terminated,
                 // the buffer is zero-initialized so this should be redundant
-                ptr.setByte(bytes.length, (byte) 0);
+                buffer.setByte(bytes.length, (byte) 0);
                 // note: this buffer is expected to be freed on the native side
-                return ptr;
+                return buffer;
             } catch (Exception e) {
                 // note: make sure we do not throw any exception here because this callback is called by native code
                 // for diagnostics we log the exception here
