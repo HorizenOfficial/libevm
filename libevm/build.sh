@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -ex
+set -e
 
 resourcesDir=../evm/src/main/resources
 linuxPrefix=linux-x86-64
