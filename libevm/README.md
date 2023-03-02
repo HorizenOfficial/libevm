@@ -18,7 +18,7 @@ To build Linux and Windows binaries manually see the following sections.
 - `go` version 1.18 or newer
 - `gcc` GNU compiler
 - `gcc-mingw-w64-x86-64` for cross-compilation to Windows
-- `solc` Solidity compiler version 0.8.0 or newer
+- `solc` Solidity compiler version 0.8.18 or newer
   - only required to run tests
 
 ### Linux

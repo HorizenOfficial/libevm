@@ -2,6 +2,7 @@
 .settings/
 .vscode/
 log/
+/evm/src/main/resources
 /evm/target/
 /libevm/bin
 /libevm/test/compiled
