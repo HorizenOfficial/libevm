@@ -17,6 +17,9 @@ import (
 // instance holds a singleton of lib.Service
 var instance *lib.Service
 
+// global callback function pointer
+var proxy C.callbackProxy = nil
+
 // initialize logger
 var logger = log.NewGlogHandler(log.FuncHandler(logToCallback))
 var logFormatter = log.JSONFormatEx(false, false)
@@ -25,12 +28,12 @@ var logCallbackHandle int
 func callbackProxy(handle int, args string) string {
 	argsStr := C.CString(args)
 	defer C.free(unsafe.Pointer(argsStr))
-	var result *C.char
-	result = C.invokeCallbackProxy(C.int(handle), argsStr)
-	defer C.free(unsafe.Pointer(result))
+	var result *C.char = C.invokeCallbackProxy(proxy, C.int(handle), argsStr)
 	if result == nil {
 		return ""
 	}
+	// make sure we free the memory allocated for the return value
+	defer C.free(unsafe.Pointer(result))
 	return C.GoString(result)
 }
 
@@ -64,14 +67,14 @@ func main() {
 }
 
 //export SetupLogging
-func SetupLogging(handle int, level *C.char) {
+func SetupLogging(handle C.int, level *C.char) {
 	parsedLevel, err := log.LvlFromString(C.GoString(level))
 	if err != nil {
 		log.Error("unable to parse log level", "error", err)
 		return
 	}
 	logger.Verbosity(parsedLevel)
-	logCallbackHandle = handle
+	logCallbackHandle = int(handle)
 }
 
 //export Invoke
@@ -81,4 +84,20 @@ func Invoke(method *C.char, args *C.char) *C.char {
 		return nil
 	}
 	return C.CString(jsonString)
+}
+
+// CreateBuffer creates a zero-initialized buffer of given size
+//export CreateBuffer
+func CreateBuffer(size C.int) unsafe.Pointer {
+	return C.calloc(C.size_t(size), 1)
+}
+
+//export FreeBuffer
+func FreeBuffer(ptr unsafe.Pointer) {
+	C.free(ptr)
+}
+
+//export SetCallbackProxy
+func SetCallbackProxy(f C.callbackProxy) {
+	proxy = f
 }

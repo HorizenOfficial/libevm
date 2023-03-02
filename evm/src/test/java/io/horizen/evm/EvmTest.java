@@ -65,7 +65,16 @@ public class EvmTest extends LibEvmTestBase {
 
                 // call "retrieve" on the contract to fetch the value we just set
                 result = Evm.Apply(
-                    statedb, addr2, contractAddress, null, funcRetrieve, gasLimit, gasPrice, null, new TraceOptions());
+                    statedb,
+                    addr2,
+                    contractAddress,
+                    null,
+                    funcRetrieve,
+                    gasLimit,
+                    gasPrice,
+                    null,
+                    new TraceOptions()
+                );
                 assertEquals("", result.evmError);
                 assertEquals(testValue, new Hash(result.returnData));
                 assertNotNull(result.tracerResult);
@@ -87,7 +96,7 @@ public class EvmTest extends LibEvmTestBase {
         final var contractCode = bytes(
             "608060405234801561001057600080fd5b50610157806100206000396000f3fe608060405234801561001057600080fd5b50600436106100935760003560e01c8063557ed1ba11610066578063557ed1ba146100bf578063564b81ef146100c55780639663f88f146100cb578063aacc5a17146100d3578063d1a82a9d146100d957600080fd5b806315e812ad146100985780631a93d1c3146100ad57806342cbb15c146100b3578063455259cb146100b9575b600080fd5b485b6040519081526020015b60405180910390f35b4561009a565b4361009a565b3a61009a565b4261009a565b4661009a565b61009a6100e7565b4461009a565b6040514181526020016100a4565b60006100f46001436100fa565b40905090565b8181038181111561011b57634e487b7160e01b600052601160045260246000fd5b9291505056fea2646970667358221220a629106cbdbc0017022eedc70f72757902db9dc7881e188747a544aaa638345d64736f6c63430008120033");
         final var funcBlockHash = bytes("9663f88f");
-        final var blockHash = new Hash("0x4be4fcab0081094826c46187731326cd17e81ef522975e5607327891d94d3ce7");
+        final var blockHash = randomHash();
         final var height = BigInteger.valueOf(1234);
 
         class BlockHashGetter extends BlockHashCallback {
