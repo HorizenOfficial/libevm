@@ -3,6 +3,7 @@ package io.horizen.evm;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.sun.jna.Callback;
 import com.sun.jna.Native;
+import com.sun.jna.Platform;
 import com.sun.jna.Pointer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -28,22 +29,10 @@ final class LibEvm {
     // because without it the only reference might be from native code (libevm) and the GC does not know about that
     private static final CallbackProxy proxy = new CallbackProxy();
 
-    private static String getOSLibExtension() {
-        var os = System.getProperty("os.name").toLowerCase();
-        if (os.contains("mac os")) {
-            return "dylib";
-        } else if (os.contains("windows")) {
-            return "dll";
-        }
-        // default to linux file extension
-        return "so";
-    }
-
     static {
-        var libName = "libevm." + getOSLibExtension();
-        logger.info("loading library: {}", libName);
+        logger.info("loading libevm for platform {}", Platform.RESOURCE_PREFIX);
         // bind native methods in this class to libevm
-        Native.register(libName);
+        Native.register("evm");
         // register callback
         SetCallbackProxy(proxy);
         // propagate log4j log level to glog
