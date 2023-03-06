@@ -33,7 +33,7 @@ else
 fi
 
 # POM xml file location
-evm_pom_xml_location="\${base_dir}/evm"
+libevm_pom_xml_location="\${base_dir}/libevm"
 
 # Functions
 function fn_die() {
@@ -78,13 +78,13 @@ if ! command -v mvn >/dev/null; then
 fi
 
 # Changing version numbers under all pom.xml file(s) using Super POM xml file
-cd "\${evm_pom_xml_location}"
+cd "\${libevm_pom_xml_location}"
 current_pom_version="\$(mvn help:evaluate -q -Dexpression=project.version -DforceStdout 2>/dev/null)"
 if [ "\${version_old}" != "\${current_pom_version}" ]; then
   fn_die "Fix it! The OLD version does not match with CURRENT version set under Super POM xml file\nCurrent version is: \${current_pom_version}. \nExiting ..."
 fi
 
-echo "" && echo "=== Modifying pom file under \${evm_pom_xml_location} location ===" && echo ""
+echo "" && echo "=== Modifying pom file under \${libevm_pom_xml_location} location ===" && echo ""
 mvn versions:set -DnewVersion=\${version_new}
 
 echo "" && echo "=== DONE ===" && echo ""

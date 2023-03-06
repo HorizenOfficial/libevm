@@ -2,10 +2,10 @@
 .settings/
 .vscode/
 log/
-/evm/src/main/resources
-/evm/target/
-/libevm/bin
-/libevm/test/compiled
+/libevm/src/main/resources
+/libevm/target/
+/native/bin
+/native/test/compiled
 
 pom.xml.versionsBackup
 *.iml

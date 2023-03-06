@@ -7,7 +7,7 @@ PUBLISH_BUILD="${PUBLISH_BUILD:-false}"
 prod_release="false"
 mapfile -t prod_release_br_list < <(echo "${PROD_RELEASE_BRANCHES}" | tr " " "\n")
 
-pom_version="$(xpath -q -e '/project/version/text()' ./evm/pom.xml)"
+pom_version="$(xpath -q -e '/project/version/text()' ./libevm/pom.xml)"
 
 if [ -z "${TRAVIS_TAG}" ]; then
   echo "TRAVIS_TAG:                           No TAG"
@@ -15,7 +15,7 @@ else
   echo "TRAVIS_TAG:                           $TRAVIS_TAG"
 fi
 echo "Production release branch(es):        ${prod_release_br_list[*]}"
-echo "./evm/pom.xml version:                $pom_version"
+echo "./libevm/pom.xml version:                $pom_version"
 
 # Functions
 # Functions

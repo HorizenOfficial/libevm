@@ -1,6 +1,6 @@
 # New version build functionality
 
-As of 2022/06/27 CI/CD pipeline adds functionality to build and publish multiple `DIGIT.DIGIT.DIGIT-SNAPSHOT` versions of `zendoo-sc-crypotolib` package
+As of 2022/06/27 CI/CD pipeline adds functionality to build and publish multiple `DIGIT.DIGIT.DIGIT-SNAPSHOT` versions of maven package
 with the help of set_version.sh script.
 
 `set_version.sh` script is located under **ci/devtools** directory and automates preparation steps for building/releasing a new
@@ -57,7 +57,7 @@ Before starting the build process use `set_version.sh` script if needed by provi
 ```
 <dependency>
     <groupId>io.horizen</groupId>
-    <artifactId>evm</artifactId>
+    <artifactId>libevm</artifactId>
     <version>0.1.0-20230303.212409-1</version>
 </dependency>
 ```

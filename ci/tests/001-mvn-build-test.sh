@@ -6,7 +6,7 @@ retval=0
 # Building jar package
 echo "" && echo "=== Building jar ===" && echo ""
 
-cd evm
+cd libevm
 mvn clean package -DskipTests=true -B || retval="$?"
 
 # Running mvn tests
