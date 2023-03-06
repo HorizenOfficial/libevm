@@ -1,7 +1,7 @@
 os: linux
 dist: focal
 vm:
-  size: large
+  size: medium
 language: generic
 addons:
   apt:
