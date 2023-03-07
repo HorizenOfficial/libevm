@@ -15,9 +15,8 @@ else
   echo "TRAVIS_TAG:                           $TRAVIS_TAG"
 fi
 echo "Production release branch(es):        ${prod_release_br_list[*]}"
-echo "./libevm/pom.xml version:                $pom_version"
+echo "./libevm/pom.xml version:             $pom_version"
 
-# Functions
 # Functions
 function import_gpg_keys() {
   # shellcheck disable=SC2145
