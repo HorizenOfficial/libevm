@@ -1,9 +1,9 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="go test" type="GoTestRunConfiguration" factoryName="Go Test">
     <module name="zen-libevm" />
-    <working_directory value="$PROJECT_DIR$/libevm" />
+    <working_directory value="$PROJECT_DIR$/native" />
     <kind value="DIRECTORY" />
-    <directory value="$PROJECT_DIR$/libevm" />
+    <directory value="$PROJECT_DIR$/native" />
     <filePath value="$PROJECT_DIR$" />
     <framework value="gotest" />
     <method v="2">
