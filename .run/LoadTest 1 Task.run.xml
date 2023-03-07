@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="LoadTest 1 Task" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="io.horizen.evm.LoadTest" />
-    <module name="evm" />
+    <module name="libevm" />
     <option name="PROGRAM_PARAMETERS" value="1" />
     <extension name="coverage">
       <pattern>

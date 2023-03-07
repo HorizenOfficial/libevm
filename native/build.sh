@@ -1,8 +1,8 @@
 #!/bin/sh
 
-set -ex
+set -e
 
-resourcesDir=../evm/src/main/resources
+resourcesDir=../libevm/src/main/resources
 linuxPrefix=linux-x86-64
 windowsPrefix=win32-x86-64
 
@@ -29,7 +29,7 @@ go build -buildmode c-shared -o bin/$windowsPrefix/libevm.dll
 #nm -g bin/$linuxPrefix/libevm.so
 #winedump -j export bin/$windowsPrefix/libevm.dll
 
-echo "# copy binaries to the EVM package"
+echo "# copy binaries to the LibEvm package"
 mkdir -p $resourcesDir/$linuxPrefix
 cp bin/$linuxPrefix/libevm.so $resourcesDir/$linuxPrefix/libevm.so
 mkdir -p $resourcesDir/$windowsPrefix

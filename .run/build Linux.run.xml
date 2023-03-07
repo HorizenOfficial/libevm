@@ -1,10 +1,10 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="build Linux" type="GoApplicationRunConfiguration" factoryName="Go Application">
     <module name="zen-libevm" />
-    <working_directory value="$PROJECT_DIR$/libevm" />
+    <working_directory value="$PROJECT_DIR$/native" />
     <go_parameters value="-buildmode=c-shared -o bin/linux-x86-64/libevm.so" />
     <kind value="DIRECTORY" />
-    <directory value="$PROJECT_DIR$/libevm" />
+    <directory value="$PROJECT_DIR$/native" />
     <filePath value="$PROJECT_DIR$" />
     <option name="run" value="false" />
     <method v="2" />

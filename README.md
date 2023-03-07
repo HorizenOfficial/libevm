@@ -6,8 +6,8 @@ This project contains a shared library and a Java wrapper for it. This library p
 
 ### shared library
 
-For details on how to build the shared library see [libevm/README.md](libevm/README.md).
+For details on how to build the shared library see [native/README.md](native/README.md).
 
 ### java wrapper
 
-The java wrapper is build via Maven: execute `mvn package` in the `evm` directory.
+The java wrapper is build via Maven: execute `mvn package` in the `libevm` directory.
