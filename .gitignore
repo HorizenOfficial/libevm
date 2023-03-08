@@ -1,0 +1,13 @@
+.idea/
+.settings/
+.vscode/
+log/
+/libevm/src/main/resources
+/libevm/target/
+/native/bin
+/native/test/compiled
+
+pom.xml.versionsBackup
+*.iml
+.project
+.classpath
