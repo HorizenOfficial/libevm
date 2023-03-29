@@ -12,7 +12,7 @@ import (
 // note: other interesting parameters for the solidity compiler include:
 // --opcodes to get the compiled code in a "readable" opcode format
 // --storage-layout to get the storage layout of the contract
-//go:generate solc --bin --bin-runtime --hashes --optimize -o compiled --overwrite Storage.sol OpCodes.sol DelegateCaller.sol DelegateReceiver.sol
+//go:generate solc --bin --bin-runtime --hashes --optimize -o compiled --overwrite Storage.sol OpCodes.sol DelegateCaller.sol DelegateReceiver.sol NativeInterop.sol
 //go:embed compiled
 var compiled embed.FS
 
@@ -22,6 +22,7 @@ var (
 	OpCodes          = OpCodesContract{newContract("compiled/OpCodes")}
 	DelegateCaller   = DelegateCallerContract{newContract("compiled/DelegateCaller")}
 	DelegateReceiver = DelegateReceiverContract{newContract("compiled/DelegateReceiver")}
+	NativeInterop    = NativeInteropContract{newContract("compiled/NativeInterop")}
 )
 
 type contract struct {
@@ -108,4 +109,10 @@ func (c *DelegateCallerContract) Store(address *common.Address, value *big.Int) 
 
 func (c *DelegateCallerContract) Retrieve() []byte {
 	return c.findSignature("retrieve")
+}
+
+type NativeInteropContract struct{ *contract }
+
+func (c *NativeInteropContract) GetForgerStakes() []byte {
+	return c.findSignature("GetForgerStakes")
 }
