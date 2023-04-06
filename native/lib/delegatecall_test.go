@@ -46,7 +46,6 @@ func TestInvokeDelegatecall(t *testing.T) {
 		To:           nil,
 		Input:        test.DelegateReceiver.Deploy(),
 		AvailableGas: 200000,
-		GasPrice:     (*hexutil.Big)(big.NewInt(1000000000)),
 	})
 	if deployReceiverResult.EvmError != "" {
 		t.Fatalf("vm error: %v", deployReceiverResult.EvmError)
@@ -71,7 +70,6 @@ func TestInvokeDelegatecall(t *testing.T) {
 		To:           nil,
 		Input:        test.DelegateCaller.Deploy(),
 		AvailableGas: 200000,
-		GasPrice:     (*hexutil.Big)(big.NewInt(1000000000)),
 	})
 	if deployCallerResult.EvmError != "" {
 		t.Fatalf("vm error: %v", deployCallerResult.EvmError)
@@ -92,7 +90,6 @@ func TestInvokeDelegatecall(t *testing.T) {
 		To:           deployReceiverResult.ContractAddress,
 		Input:        test.DelegateReceiver.Store(test1Value),
 		AvailableGas: 200000,
-		GasPrice:     (*hexutil.Big)(big.NewInt(1000000000)),
 	})
 	//retrieve value
 	_, receiverTestResult := instance.EvmApply(EvmParams{
@@ -101,7 +98,6 @@ func TestInvokeDelegatecall(t *testing.T) {
 		To:           deployReceiverResult.ContractAddress,
 		Input:        test.DelegateReceiver.Retrieve(),
 		AvailableGas: 200000,
-		GasPrice:     (*hexutil.Big)(big.NewInt(1000000000)),
 	})
 	if receiverTestResult.EvmError != "" {
 		t.Fatalf("vm error: %v", receiverTestResult.EvmError)
@@ -119,13 +115,6 @@ func TestInvokeDelegatecall(t *testing.T) {
 		To:           deployCallerResult.ContractAddress,
 		Input:        test.DelegateCaller.Store(deployReceiverResult.ContractAddress, test2Value),
 		AvailableGas: 200000,
-		GasPrice:     (*hexutil.Big)(big.NewInt(1000000000)),
-		TraceOptions: &TraceOptions{
-			EnableMemory:     true,
-			DisableStack:     false,
-			DisableStorage:   false,
-			EnableReturnData: true,
-		},
 	})
 	//retrieve value
 	_, callerTestResult := instance.EvmApply(EvmParams{
@@ -134,7 +123,6 @@ func TestInvokeDelegatecall(t *testing.T) {
 		To:           deployCallerResult.ContractAddress,
 		Input:        test.DelegateCaller.Retrieve(),
 		AvailableGas: 200000,
-		GasPrice:     (*hexutil.Big)(big.NewInt(1000000000)),
 	})
 	if callerTestResult.EvmError != "" {
 		t.Fatalf("vm error: %v", callerTestResult.EvmError)

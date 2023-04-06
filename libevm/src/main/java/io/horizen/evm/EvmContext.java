@@ -11,4 +11,5 @@ public class EvmContext {
     public BigInteger baseFee;
     public Hash random;
     public BlockHashCallback blockHashCallback;
+    public Tracer tracer;
 }

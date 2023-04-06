@@ -2,7 +2,6 @@ package io.horizen.evm.params;
 
 import io.horizen.evm.Address;
 import io.horizen.evm.EvmContext;
-import io.horizen.evm.TraceOptions;
 
 import java.math.BigInteger;
 
@@ -14,7 +13,6 @@ public class EvmParams extends HandleParams {
     public final BigInteger availableGas; // uint64
     public final BigInteger gasPrice;
     public final EvmContext context;
-    public final TraceOptions traceOptions;
 
     public EvmParams(
         int handle,
@@ -24,8 +22,7 @@ public class EvmParams extends HandleParams {
         byte[] input,
         BigInteger availableGas,
         BigInteger gasPrice,
-        EvmContext context,
-        TraceOptions traceOptions
+        EvmContext context
     ) {
         super(handle);
         this.from = from;
@@ -35,6 +32,5 @@ public class EvmParams extends HandleParams {
         this.availableGas = availableGas;
         this.gasPrice = gasPrice;
         this.context = context;
-        this.traceOptions = traceOptions;
     }
 }

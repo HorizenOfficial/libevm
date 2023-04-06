@@ -2,18 +2,21 @@ package lib
 
 import (
 	"github.com/ethereum/go-ethereum/core/state"
+	"github.com/ethereum/go-ethereum/eth/tracers"
 	"strconv"
 )
 
 type Service struct {
 	databases *Handles[*Database]
 	statedbs  *Handles[*state.StateDB]
+	tracers   *Handles[*tracers.Tracer]
 }
 
 func New() *Service {
 	return &Service{
 		databases: NewHandles[*Database](),
 		statedbs:  NewHandles[*state.StateDB](),
+		tracers:   NewHandles[*tracers.Tracer](),
 	}
 }
 
