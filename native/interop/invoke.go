@@ -1,8 +1,6 @@
 package interop
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/log"
@@ -62,12 +60,8 @@ func callMethod(target interface{}, method string, args string) (error, interfac
 			return fmt.Errorf("%w: null args is not allowed", ErrInvalidArguments), nil
 		}
 		// unmarshal args to the type of the one parameter of the function
-		dec := json.NewDecoder(bytes.NewReader([]byte(args)))
-		// make sure to throw errors incase unknown fields are passed, do not silently ignore this
-		// as it is most likely a sign of buggy interface code
-		dec.DisallowUnknownFields()
 		argsInstance := reflect.New(funType.In(0))
-		err := dec.Decode(argsInstance.Interface())
+		err := Deserialize(args, argsInstance.Interface())
 		if err != nil {
 			return fmt.Errorf("%w: %v", ErrInvalidArguments, err), nil
 		}
@@ -116,10 +110,10 @@ func toJsonResponse(err error, result interface{}) string {
 	} else {
 		res.Result = result
 	}
-	jsonBytes, marshalErr := json.Marshal(res)
+	response, marshalErr := Serialize(res)
 	if marshalErr != nil {
 		log.Error("unable to marshal response", "marshalErr", marshalErr, "response", res)
 		return ""
 	}
-	return string(jsonBytes)
+	return response
 }
