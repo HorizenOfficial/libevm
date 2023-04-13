@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"libevm/interop"
 	"libevm/test"
 	"math/big"
 	"reflect"
@@ -55,14 +56,18 @@ func TestEvmOpCodes(t *testing.T) {
 	SetCallbackProxy(func(handle int, args string) string {
 		switch handle {
 		case blockHashCallbackHandle:
-			actual := new(big.Int)
-			actual.SetString(args[2:], 16)
+			actual := new(hexutil.Big)
+			err := interop.Deserialize(args, actual)
+			if err != nil {
+				panic(fmt.Sprintf("invalid callback arguments: %v", args))
+			}
 			// the getBlockHash() function of OpCodes.sol will always call blockhash of blockNumber - 1
 			// verify that the argument arrived here as expected
-			if expected := new(big.Int).Sub(blockNumber, common.Big1); actual.Cmp(expected) != 0 {
+			if expected := new(big.Int).Sub(blockNumber, common.Big1); actual.ToInt().Cmp(expected) != 0 {
 				panic(fmt.Sprintf("BLOCKHASH opcode called with unexpected block number: want %v got %v", expected, actual))
 			}
-			return blockHash.String()
+			result, _ := interop.Serialize(blockHash)
+			return result
 		default:
 			panic(fmt.Sprintf("callback proxy called with unknown handle: %v args: %s", handle, args))
 		}

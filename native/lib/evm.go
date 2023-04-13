@@ -7,6 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/eth/tracers"
+	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
 	"math"
 	"math/big"
@@ -32,8 +33,13 @@ func (c *BlockHashCallback) getBlockHash(blockNumber uint64) common.Hash {
 		// fallback to mocked block hash
 		return common.BytesToHash(crypto.Keccak256([]byte(blockNumberBig.String())))
 	}
-	blockNumberHex := (*hexutil.Big)(blockNumberBig).String()
-	return common.HexToHash(c.Invoke(blockNumberHex))
+	result := new(common.Hash)
+	err := c.Invoke((*hexutil.Big)(blockNumberBig), result)
+	if err != nil {
+		log.Error("block hash getter callback failed: %v", err)
+		return common.Hash{}
+	}
+	return *result
 }
 
 type EvmContext struct {
