@@ -47,7 +47,7 @@ func TestCallMethod(t *testing.T) {
 		method string
 		args   string
 		err    error
-		result interface{}
+		result any
 	}{
 		{method: "ThisDoesNotExist", err: ErrMethodNotFound},
 

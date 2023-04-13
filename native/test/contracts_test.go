@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-func call[T any](t *testing.T, instance *lib.Service, method string, args interface{}) T {
+func call[T any](t *testing.T, instance *lib.Service, method string, args any) T {
 	jsonArgs := ""
 	if args != nil {
 		jsonBytes, err := json.Marshal(args)
