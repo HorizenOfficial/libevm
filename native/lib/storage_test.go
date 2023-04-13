@@ -111,7 +111,7 @@ func TestStateStorage(t *testing.T) {
 			common.HexToHash("572f59c7e67c4e1733b2a349db3fc3f50e7b6d2d2b08419957937678d647b40a47"),
 		}
 	)
-	dbHandle := instance.OpenMemoryDB()
+	dbHandle := instance.DatabaseOpenMemoryDB()
 	for _, value := range values {
 		testStorageSetCommitWrite(t, instance, dbHandle, addr, key, value)
 	}

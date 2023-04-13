@@ -11,7 +11,7 @@ func TestRefunds(t *testing.T) {
 		instance = New()
 		sequence = []int{0, 67, 123, -20, 523, 56234, 41212, -23425, 1, 0}
 	)
-	dbHandle := instance.OpenMemoryDB()
+	dbHandle := instance.DatabaseOpenMemoryDB()
 	_, stateHandle := instance.StateOpen(StateParams{
 		DatabaseParams: DatabaseParams{DatabaseHandle: dbHandle},
 		Root:           common.Hash{},

@@ -46,7 +46,7 @@ func TestContracts(t *testing.T) {
 		anotherValue = big.NewInt(5555)
 	)
 
-	dbHandle := call[int](t, instance, "OpenLevelDB", lib.LevelDBParams{Path: t.TempDir()})
+	dbHandle := call[int](t, instance, "DatabaseOpenLevelDB", lib.LevelDBParams{Path: t.TempDir()})
 	handle := call[int](t, instance, "StateOpen", lib.StateParams{
 		DatabaseParams: lib.DatabaseParams{DatabaseHandle: dbHandle},
 		Root:           emptyHash,
@@ -118,5 +118,5 @@ func TestContracts(t *testing.T) {
 		t.Fatalf("nonce was modified: expected 0, actual %v", nonce)
 	}
 	// cleanup
-	call[any](t, instance, "CloseDatabase", lib.DatabaseParams{DatabaseHandle: dbHandle})
+	call[any](t, instance, "DatabaseClose", lib.DatabaseParams{DatabaseHandle: dbHandle})
 }

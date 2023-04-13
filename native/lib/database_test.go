@@ -97,7 +97,7 @@ func TestService_OpenLevelDB(t *testing.T) {
 		previous := big.NewInt(int64(i - 1))
 		next := big.NewInt(int64(i))
 		// open database
-		err, dbHandle := instance.OpenLevelDB(LevelDBParams{Path: dbPath})
+		err, dbHandle := instance.DatabaseOpenLevelDB(LevelDBParams{Path: dbPath})
 		if err != nil {
 			t.Fatalf("failed to open database: %v", err)
 		}
@@ -135,7 +135,7 @@ func TestService_OpenLevelDB(t *testing.T) {
 			t.Fatalf("failed to commit state: %v", err)
 		}
 		instance.StateClose(HandleParams{Handle: stateHandle})
-		err = instance.CloseDatabase(DatabaseParams{DatabaseHandle: dbHandle})
+		err = instance.DatabaseClose(DatabaseParams{DatabaseHandle: dbHandle})
 		if err != nil {
 			t.Fatalf("failed to close database: %v", err)
 		}

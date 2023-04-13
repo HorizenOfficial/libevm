@@ -18,7 +18,7 @@ func TestInvokeDelegatecall(t *testing.T) {
 	)
 
 	//=====SETUP=====
-	_, dbHandle := instance.OpenLevelDB(LevelDBParams{Path: t.TempDir()})
+	_, dbHandle := instance.DatabaseOpenLevelDB(LevelDBParams{Path: t.TempDir()})
 	_, handle := instance.StateOpen(StateParams{
 		DatabaseParams: DatabaseParams{DatabaseHandle: dbHandle},
 		Root:           emptyHash,
@@ -141,5 +141,5 @@ func TestInvokeDelegatecall(t *testing.T) {
 		t.Fatalf("nonce was modified: expected 2, actual %v", nonce)
 	}
 	// cleanup
-	_ = instance.CloseDatabase(DatabaseParams{DatabaseHandle: dbHandle})
+	_ = instance.DatabaseClose(DatabaseParams{DatabaseHandle: dbHandle})
 }

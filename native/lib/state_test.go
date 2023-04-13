@@ -20,7 +20,7 @@ func TestRawStateDB(t *testing.T) {
 		key      = common.BytesToHash(crypto.Keccak256(common.FromHex("00112233")))
 		value    = common.HexToHash("0x1234")
 	)
-	dbHandle := instance.OpenMemoryDB()
+	dbHandle := instance.DatabaseOpenMemoryDB()
 	_, db := instance.databases.Get(dbHandle)
 	statedb, _ := state.New(test.ZeroHash, db.database, nil)
 	// set a non-empty value to the account to make sure it exists and is not "empty"
