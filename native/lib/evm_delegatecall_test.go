@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestInvokeDelegatecall(t *testing.T) {
+func TestEvmDelegatecall(t *testing.T) {
 	var (
 		instance   = New()
 		user       = common.HexToAddress("0xbafe3b6f2a19658df3cb5efca158c93272ff5c0b")
