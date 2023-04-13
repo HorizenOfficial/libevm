@@ -17,9 +17,9 @@ type Invocation struct {
 }
 
 type InvocationResult struct {
-	Ret         []byte         `json:"ret"`
-	LeftOverGas hexutil.Uint64 `json:"leftOverGas"`
-	Err         error          `json:"err"`
+	ReturnData     []byte         `json:"returnData"`
+	LeftOverGas    hexutil.Uint64 `json:"leftOverGas"`
+	ExecutionError error          `json:"executionError"`
 }
 
 type InvocationCallback struct{ Callback }
@@ -43,5 +43,5 @@ func (c *InvocationCallback) execute(caller, callee common.Address, value *big.I
 		log.Error("block hash getter callback failed: %v", err)
 		return nil, gas, err
 	}
-	return result.Ret, uint64(result.LeftOverGas), result.Err
+	return result.ReturnData, uint64(result.LeftOverGas), result.ExecutionError
 }

@@ -12,4 +12,6 @@ public class EvmContext {
     public Hash random;
     public BlockHashCallback blockHashCallback;
     public Tracer tracer;
+    public Address[] externalContracts;
+    public InvocationCallback externalCallback;
 }

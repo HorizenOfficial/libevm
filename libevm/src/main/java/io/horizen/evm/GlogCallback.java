@@ -1,6 +1,5 @@
 package io.horizen.evm;
 
-import com.fasterxml.jackson.databind.type.TypeFactory;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
 
@@ -16,8 +15,7 @@ class GlogCallback extends LibEvmCallback {
     @Override
     public String invoke(String args) {
         try {
-            HashMap<String, Object> data =
-                Converter.fromJson(args, TypeFactory.defaultInstance().constructType(HashMap.class));
+            var data = Converter.fromJson(args, HashMap.class);
             // parse and remove known properties from the map
             var level = glogToLog4jLevel((String) data.remove("lvl"));
             var file = data.remove("file");

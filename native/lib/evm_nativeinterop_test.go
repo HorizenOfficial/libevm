@@ -49,9 +49,9 @@ func TestNativeInterop(t *testing.T) {
 				panic(fmt.Sprintf("unexpected invocation arguments:\nwant %v\n got %v", expectedArgs, args))
 			}
 			res := InvocationResult{
-				Ret:         mockedForgerStakesData,
-				LeftOverGas: 0,
-				Err:         nil,
+				ReturnData:     mockedForgerStakesData,
+				LeftOverGas:    0,
+				ExecutionError: nil,
 			}
 			result, _ := interop.Serialize(res)
 			return result
