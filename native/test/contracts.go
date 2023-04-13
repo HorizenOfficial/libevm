@@ -23,6 +23,7 @@ var (
 	DelegateCaller   = DelegateCallerContract{newContract("compiled/DelegateCaller")}
 	DelegateReceiver = DelegateReceiverContract{newContract("compiled/DelegateReceiver")}
 	NativeInterop    = NativeInteropContract{newContract("compiled/NativeInterop")}
+	ForgerStakes     = ForgerStakesContract{newContract("compiled/ForgerStakes")}
 )
 
 type contract struct {
@@ -115,4 +116,10 @@ type NativeInteropContract struct{ *contract }
 
 func (c *NativeInteropContract) GetForgerStakes() []byte {
 	return c.findSignature("GetForgerStakes")
+}
+
+type ForgerStakesContract struct{ *contract }
+
+func (c *ForgerStakesContract) GetAllForgersStakes() []byte {
+	return c.findSignature("getAllForgersStakes")
 }

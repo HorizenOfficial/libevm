@@ -8,6 +8,7 @@ contract NativeInterop {
     ForgerStakes nativeContract = ForgerStakes(0x0000000000000000000022222222222222222222);
 
     function GetForgerStakes() public view returns (ForgerStakes.StakeInfo[] memory){
-        return nativeContract.getAllForgersStakes();
+        // set an explicit gas limit of 10000 for this call for the unit test
+        return nativeContract.getAllForgersStakes{gas: 10000}();
     }
 }
