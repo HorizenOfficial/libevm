@@ -30,7 +30,7 @@ class GlogCallback extends LibEvmCallback {
             // note: make sure we do not throw any exception here because this callback is called by native code
             // for diagnostics we log the exception here, if it is caused by malformed json it will also include
             // the raw json string itself
-            logger.warn("received invalid log message data from libevm", e);
+            logger.warn("received invalid log message data", e);
         }
         return null;
     }

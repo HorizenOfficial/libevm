@@ -17,7 +17,7 @@ public abstract class InvocationCallback extends LibEvmCallback {
         } catch (Exception e) {
             // note: make sure we do not throw any exception here because this callback is called by native code
             // for diagnostics we log the exception here
-            logger.warn("received invalid block hash collback from libevm", e);
+            logger.warn("received invalid external contract callback", e);
         }
         return null;
     }
