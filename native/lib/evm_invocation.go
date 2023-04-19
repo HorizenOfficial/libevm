@@ -29,7 +29,7 @@ func (c *InvocationCallback) execute(caller, callee common.Address, value *big.I
 		// fallback to noop
 		return nil, gas, nil
 	}
-	invocation := Invocation{
+	invocation := &Invocation{
 		Caller:   caller,
 		Callee:   callee,
 		Value:    (*hexutil.Big)(value),
