@@ -164,7 +164,7 @@ func TestEvmExternalContracts(t *testing.T) {
 			res := InvocationResult{
 				ReturnData:     mockedForgerStakesData,
 				LeftOverGas:    0,
-				ExecutionError: nil,
+				ExecutionError: "",
 			}
 			result, _ := interop.Serialize(res)
 			return result
