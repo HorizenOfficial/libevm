@@ -1,6 +1,5 @@
 package io.horizen.evm;
 
-import io.horizen.evm.results.EvmResult;
 import org.junit.Test;
 
 import java.math.BigInteger;
@@ -14,7 +13,6 @@ public class EvmTest extends LibEvmTestBase {
     private final BigInteger gasLimit = BigInteger.valueOf(200000);
     private final BigInteger v10m = BigInteger.valueOf(10000000);
     private final BigInteger v5m = BigInteger.valueOf(5000000);
-    private final BigInteger gasPrice = BigInteger.valueOf(10);
 
     @Test
     public void evmApply() throws Exception {
@@ -28,7 +26,7 @@ public class EvmTest extends LibEvmTestBase {
         final var funcStore = bytes("6057361d");
         final var funcRetrieve = bytes("2e64cec1");
 
-        EvmResult result;
+        InvocationResult result;
         Address contractAddress;
         Hash modifiedStateRoot;
         byte[] calldata;
@@ -37,8 +35,8 @@ public class EvmTest extends LibEvmTestBase {
             try (var statedb = new StateDB(db, Hash.ZERO)) {
                 // test a simple value transfer
                 statedb.addBalance(addr1, v10m);
-                result = Evm.Apply(statedb, addr1, addr2, v5m, null, gasLimit, gasPrice, null);
-                assertEquals("", result.evmError);
+                result = Evm.Apply(statedb, new Invocation(addr1, addr2, v5m, null, gasLimit, false), null);
+                assertEquals("", result.executionError);
                 assertEquals(v5m, statedb.getBalance(addr2));
                 // gas fees should not have been deducted
                 assertEquals(v5m, statedb.getBalance(addr1));
@@ -48,8 +46,9 @@ public class EvmTest extends LibEvmTestBase {
                 // test contract deployment
                 calldata = concat(contractCode, Hash.ZERO.toBytes());
                 statedb.setTxContext(txHash, 0);
-                var createResult = Evm.Apply(statedb, addr2, null, null, calldata, gasLimit, gasPrice, null);
-                assertEquals("", createResult.evmError);
+                var createResult =
+                    Evm.Apply(statedb, new Invocation(addr2, null, null, calldata, gasLimit, false), null);
+                assertEquals("", createResult.executionError);
                 contractAddress = createResult.contractAddress;
                 assertEquals(codeHash, statedb.getCodeHash(contractAddress));
                 var logs = statedb.getLogs(txHash);
@@ -60,17 +59,21 @@ public class EvmTest extends LibEvmTestBase {
 
                 // call "store" function on the contract to set a value
                 calldata = concat(funcStore, testValue.toBytes());
-                result = Evm.Apply(statedb, addr2, contractAddress, null, calldata, gasLimit, gasPrice, null);
-                assertEquals("", result.evmError);
+                result =
+                    Evm.Apply(statedb, new Invocation(addr2, contractAddress, null, calldata, gasLimit, false), null);
+                assertEquals("", result.executionError);
 
                 // use a tracer for the next call to verify it is used
                 try (var tracer = new Tracer(new TraceOptions())) {
                     var context = new EvmContext();
                     context.tracer = tracer;
                     // call "retrieve" on the contract to fetch the value we just set
-                    result =
-                        Evm.Apply(statedb, addr2, contractAddress, null, funcRetrieve, gasLimit, gasPrice, context);
-                    assertEquals("", result.evmError);
+                    result = Evm.Apply(
+                        statedb,
+                        new Invocation(addr2, contractAddress, null, funcRetrieve, gasLimit, false),
+                        context
+                    );
+                    assertEquals("", result.executionError);
                     assertEquals(testValue, new Hash(result.returnData));
                     var trace = tracer.getResult().result;
                     assertNotNull(trace);
@@ -83,8 +86,12 @@ public class EvmTest extends LibEvmTestBase {
 
             // reopen the state and retrieve a value
             try (var statedb = new StateDB(db, modifiedStateRoot)) {
-                result = Evm.Apply(statedb, addr2, contractAddress, null, funcRetrieve, gasLimit, gasPrice, null);
-                assertEquals("", result.evmError);
+                result = Evm.Apply(
+                    statedb,
+                    new Invocation(addr2, contractAddress, null, funcRetrieve, gasLimit, false),
+                    null
+                );
+                assertEquals("", result.executionError);
                 assertEquals(testValue, new Hash(result.returnData));
             }
         }
@@ -123,8 +130,9 @@ public class EvmTest extends LibEvmTestBase {
             var blockHashGetterB = new BlockHashGetter()
         ) {
             // deploy OpCode test contract
-            var createResult = Evm.Apply(statedb, addr1, null, null, contractCode, gasLimit, gasPrice, null);
-            assertEquals("", createResult.evmError);
+            var createResult =
+                Evm.Apply(statedb, new Invocation(addr1, null, null, contractCode, gasLimit, false), null);
+            assertEquals("", createResult.executionError);
             var contractAddress = createResult.contractAddress;
 
             // setup context
@@ -137,8 +145,12 @@ public class EvmTest extends LibEvmTestBase {
             blockHashGetterB.enable();
 
             // call getBlockHash() function on the contract
-            var resultA = Evm.Apply(statedb, addr1, contractAddress, null, funcBlockHash, gasLimit, gasPrice, context);
-            assertEquals("unexpected error message", "", resultA.evmError);
+            var resultA = Evm.Apply(
+                statedb,
+                new Invocation(addr1, contractAddress, null, funcBlockHash, gasLimit, false),
+                context
+            );
+            assertEquals("unexpected error message", "", resultA.executionError);
             assertEquals("unexpected block hash", blockHash, new Hash(resultA.returnData));
 
             // throw if A is called
@@ -147,8 +159,12 @@ public class EvmTest extends LibEvmTestBase {
             blockHashGetterB.disable();
 
             // call getBlockHash() function on the contract
-            var resultB = Evm.Apply(statedb, addr1, contractAddress, null, funcBlockHash, gasLimit, gasPrice, context);
-            assertEquals("unexpected error message", "", resultB.evmError);
+            var resultB = Evm.Apply(
+                statedb,
+                new Invocation(addr1, contractAddress, null, funcBlockHash, gasLimit, false),
+                context
+            );
+            assertEquals("unexpected error message", "", resultB.executionError);
             assertEquals("unexpected block hash", blockHash, new Hash(resultB.returnData));
         }
 
@@ -178,8 +194,9 @@ public class EvmTest extends LibEvmTestBase {
             var statedb = new StateDB(db, Hash.ZERO)
         ) {
             // deploy NativeInterop test contract
-            var createResult = Evm.Apply(statedb, addr1, null, null, contractCode, gasLimit, gasPrice, null);
-            assertEquals("", createResult.evmError);
+            var createResult =
+                Evm.Apply(statedb, new Invocation(addr1, null, null, contractCode, gasLimit, false), null);
+            assertEquals("", createResult.executionError);
             var contractAddress = createResult.contractAddress;
 
             class NativeContractCallback extends InvocationCallback {
@@ -191,7 +208,7 @@ public class EvmTest extends LibEvmTestBase {
                     assertArrayEquals("expected call to GetForgerStakes()", funcGetAllForgerStakes, args.input);
                     assertEquals("expected call with 10k gas", BigInteger.valueOf(10000), args.gas);
                     assertTrue("expected read only flag to be set (STATICCALL)", args.readOnly);
-                    return new InvocationResult(mockedForgerStakesData, BigInteger.ZERO, "");
+                    return new InvocationResult(mockedForgerStakesData, BigInteger.ZERO, "", false, null);
                 }
             }
             try (var nativeContractCallback = new NativeContractCallback()) {
@@ -202,8 +219,12 @@ public class EvmTest extends LibEvmTestBase {
 
                 // call GetForgerStakes() function on the contract
                 var result =
-                    Evm.Apply(statedb, addr1, contractAddress, null, funcGetForgerStakes, gasLimit, gasPrice, context);
-                assertEquals("unexpected error message", "", result.evmError);
+                    Evm.Apply(
+                        statedb,
+                        new Invocation(addr1, contractAddress, null, funcGetForgerStakes, gasLimit, false),
+                        context
+                    );
+                assertEquals("unexpected error message", "", result.executionError);
                 assertArrayEquals("unexpected forger stakes data", mockedForgerStakesData, result.returnData);
             }
         }
@@ -212,9 +233,9 @@ public class EvmTest extends LibEvmTestBase {
     @Test
     public void insufficientBalanceTransfer() throws Exception {
         try (var db = new MemoryDatabase(); var statedb = new StateDB(db, Hash.ZERO)) {
-            var result = Evm.Apply(statedb, addr1, addr2, v5m, null, gasLimit, gasPrice, null);
-            assertEquals("unexpected error message", "insufficient balance for transfer", result.evmError);
-            assertEquals("unexpected gas usage", BigInteger.ZERO, result.usedGas);
+            var result = Evm.Apply(statedb, new Invocation(addr1, addr2, v5m, null, gasLimit, false), null);
+            assertEquals("unexpected error message", "insufficient balance for transfer", result.executionError);
+            assertEquals("unexpected gas usage", gasLimit, result.leftOverGas);
         }
     }
 
@@ -224,9 +245,9 @@ public class EvmTest extends LibEvmTestBase {
             "5234801561001057600080fd521683398151915290610073906020808252600c90820190565b60405180910390a2336001600160a01b03");
         try (var db = new MemoryDatabase(); var statedb = new StateDB(db, Hash.ZERO)) {
             statedb.setBalance(addr1, v5m);
-            var result = Evm.Apply(statedb, addr1, null, null, input, gasLimit, gasPrice, null);
-            assertTrue("unexpected error message", result.evmError.startsWith("stack underflow"));
-            assertEquals("unexpected gas usage", gasLimit, result.usedGas);
+            var result = Evm.Apply(statedb, new Invocation(addr1, null, null, input, gasLimit, false), null);
+            assertTrue("unexpected error message", result.executionError.startsWith("stack underflow"));
+            assertEquals("unexpected gas usage", BigInteger.ZERO, result.leftOverGas);
         }
     }
 
@@ -237,9 +258,13 @@ public class EvmTest extends LibEvmTestBase {
         var gasLimit = BigInteger.valueOf(50000);
         try (var db = new MemoryDatabase(); var statedb = new StateDB(db, Hash.ZERO)) {
             statedb.setBalance(addr1, v5m);
-            var result = Evm.Apply(statedb, addr1, null, null, input, gasLimit, gasPrice, null);
-            assertEquals("unexpected error message", "contract creation code storage out of gas", result.evmError);
-            assertEquals("unexpected gas usage", gasLimit, result.usedGas);
+            var result = Evm.Apply(statedb, new Invocation(addr1, null, null, input, gasLimit, false), null);
+            assertEquals(
+                "unexpected error message",
+                "contract creation code storage out of gas",
+                result.executionError
+            );
+            assertEquals("unexpected gas usage", BigInteger.ZERO, result.leftOverGas);
         }
     }
 }

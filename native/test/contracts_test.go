@@ -66,16 +66,17 @@ func TestContracts(t *testing.T) {
 		Nonce: 1,
 	})
 	// deploy contract
-	result := call[lib.EvmResult](t, instance, "EvmApply", lib.EvmParams{
+	result := call[lib.InvocationResult](t, instance, "EvmApply", lib.EvmParams{
 		HandleParams: lib.HandleParams{Handle: handle},
-		From:         user,
-		To:           nil,
-		Input:        Storage.Deploy(initialValue),
-		AvailableGas: 200000,
-		GasPrice:     (*hexutil.Big)(big.NewInt(1000000000)),
+		Invocation: lib.Invocation{
+			Caller: user,
+			Callee: nil,
+			Input:  Storage.Deploy(initialValue),
+			Gas:    200000,
+		},
 	})
-	if result.EvmError != "" {
-		t.Fatalf("vm error: %v", result.EvmError)
+	if result.ExecutionError != "" {
+		t.Fatalf("vm error: %v", result.ExecutionError)
 	}
 	getCodeResult := call[[]byte](t, instance, "StateGetCode", lib.AccountParams{
 		HandleParams: lib.HandleParams{Handle: handle},
@@ -87,23 +88,25 @@ func TestContracts(t *testing.T) {
 	// call function to store value
 	call[any](t, instance, "EvmApply", lib.EvmParams{
 		HandleParams: lib.HandleParams{Handle: handle},
-		From:         user,
-		To:           result.ContractAddress,
-		Input:        Storage.Store(anotherValue),
-		AvailableGas: 200000,
-		GasPrice:     (*hexutil.Big)(big.NewInt(1000000000)),
+		Invocation: lib.Invocation{
+			Caller: user,
+			Callee: result.ContractAddress,
+			Input:  Storage.Store(anotherValue),
+			Gas:    200000,
+		},
 	})
 	// call function to retrieve value
-	resultRetrieve := call[lib.EvmResult](t, instance, "EvmApply", lib.EvmParams{
+	resultRetrieve := call[lib.InvocationResult](t, instance, "EvmApply", lib.EvmParams{
 		HandleParams: lib.HandleParams{Handle: handle},
-		From:         user,
-		To:           result.ContractAddress,
-		Input:        Storage.Retrieve(),
-		AvailableGas: 200000,
-		GasPrice:     (*hexutil.Big)(big.NewInt(1000000000)),
+		Invocation: lib.Invocation{
+			Caller: user,
+			Callee: result.ContractAddress,
+			Input:  Storage.Retrieve(),
+			Gas:    200000,
+		},
 	})
-	if resultRetrieve.EvmError != "" {
-		t.Fatalf("vm error: %v", resultRetrieve.EvmError)
+	if resultRetrieve.ExecutionError != "" {
+		t.Fatalf("vm error: %v", resultRetrieve.ExecutionError)
 	}
 	retrievedValue := common.BytesToHash(resultRetrieve.ReturnData).Big()
 	if anotherValue.Cmp(retrievedValue) != 0 {

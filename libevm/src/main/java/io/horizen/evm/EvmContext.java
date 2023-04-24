@@ -6,6 +6,7 @@ public class EvmContext {
     public BigInteger chainID;
     public Address coinbase;
     public BigInteger gasLimit;
+    public BigInteger gasPrice;
     public BigInteger blockNumber;
     public BigInteger time;
     public BigInteger baseFee;

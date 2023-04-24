@@ -24,9 +24,11 @@ func getTracerResult(t *testing.T, params TracerCreateParams) *TracerResult {
 		HandleParams: HandleParams{
 			Handle: stateHandle,
 		},
-		From:  sender,
-		To:    nil,
-		Input: test.Storage.Deploy(initialValue),
+		Invocation: Invocation{
+			Caller: sender,
+			Callee: nil,
+			Input:  test.Storage.Deploy(initialValue),
+		},
 		Context: EvmContext{
 			BaseFee: (*hexutil.Big)(new(big.Int)),
 			Tracer:  &tracerHandle,
@@ -35,7 +37,7 @@ func getTracerResult(t *testing.T, params TracerCreateParams) *TracerResult {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if result.Reverted || result.EvmError != "" {
+	if result.Reverted || result.ExecutionError != "" {
 		t.Fatal(result)
 	}
 	// retrieve the result and check that its structure is of type logger.ExecutionResult

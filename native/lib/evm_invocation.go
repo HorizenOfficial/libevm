@@ -4,24 +4,10 @@ import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/log"
 	"math/big"
 )
-
-type Invocation struct {
-	Caller   common.Address `json:"caller"`
-	Callee   common.Address `json:"callee"`
-	Value    *hexutil.Big   `json:"value"`
-	Input    []byte         `json:"input"`
-	Gas      hexutil.Uint64 `json:"gas"`
-	ReadOnly bool           `json:"readOnly"`
-}
-
-type InvocationResult struct {
-	ReturnData     []byte         `json:"returnData"`
-	LeftOverGas    hexutil.Uint64 `json:"leftOverGas"`
-	ExecutionError string         `json:"executionError"`
-}
 
 type InvocationCallback struct{ Callback }
 
@@ -32,7 +18,7 @@ func (c *InvocationCallback) execute(caller, callee common.Address, value *big.I
 	}
 	invocation := &Invocation{
 		Caller:   caller,
-		Callee:   callee,
+		Callee:   &callee,
 		Value:    (*hexutil.Big)(value),
 		Input:    input,
 		Gas:      hexutil.Uint64(gas),
@@ -45,7 +31,9 @@ func (c *InvocationCallback) execute(caller, callee common.Address, value *big.I
 		return nil, gas, err
 	}
 	var invocationErr error
-	if result.ExecutionError != "" {
+	if result.Reverted {
+		invocationErr = vm.ErrExecutionReverted
+	} else if result.ExecutionError != "" {
 		invocationErr = fmt.Errorf("external contract invocation failed: %s", result.ExecutionError)
 	}
 	return result.ReturnData, uint64(result.LeftOverGas), invocationErr

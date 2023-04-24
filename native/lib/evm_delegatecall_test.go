@@ -42,13 +42,15 @@ func TestEvmDelegatecall(t *testing.T) {
 	//=====CONTRACTS DEPLOY=====
 	_, deployReceiverResult := instance.EvmApply(EvmParams{
 		HandleParams: HandleParams{Handle: handle},
-		From:         user,
-		To:           nil,
-		Input:        test.DelegateReceiver.Deploy(),
-		AvailableGas: 200000,
+		Invocation: Invocation{
+			Caller: user,
+			Callee: nil,
+			Input:  test.DelegateReceiver.Deploy(),
+			Gas:    200000,
+		},
 	})
-	if deployReceiverResult.EvmError != "" {
-		t.Fatalf("vm error: %v", deployReceiverResult.EvmError)
+	if deployReceiverResult.ExecutionError != "" {
+		t.Fatalf("vm error: %v", deployReceiverResult.ExecutionError)
 	}
 	_, getReceiverCode := instance.StateGetCode(AccountParams{
 		HandleParams: HandleParams{Handle: handle},
@@ -66,13 +68,15 @@ func TestEvmDelegatecall(t *testing.T) {
 	})
 	_, deployCallerResult := instance.EvmApply(EvmParams{
 		HandleParams: HandleParams{Handle: handle},
-		From:         user,
-		To:           nil,
-		Input:        test.DelegateCaller.Deploy(),
-		AvailableGas: 200000,
+		Invocation: Invocation{
+			Caller: user,
+			Callee: nil,
+			Input:  test.DelegateCaller.Deploy(),
+			Gas:    200000,
+		},
 	})
-	if deployCallerResult.EvmError != "" {
-		t.Fatalf("vm error: %v", deployCallerResult.EvmError)
+	if deployCallerResult.ExecutionError != "" {
+		t.Fatalf("vm error: %v", deployCallerResult.ExecutionError)
 	}
 	_, getCallerCode := instance.StateGetCode(AccountParams{
 		HandleParams: HandleParams{Handle: handle},
@@ -86,21 +90,25 @@ func TestEvmDelegatecall(t *testing.T) {
 	//store value
 	_, _ = instance.EvmApply(EvmParams{
 		HandleParams: HandleParams{Handle: handle},
-		From:         user,
-		To:           deployReceiverResult.ContractAddress,
-		Input:        test.DelegateReceiver.Store(test1Value),
-		AvailableGas: 200000,
+		Invocation: Invocation{
+			Caller: user,
+			Callee: deployReceiverResult.ContractAddress,
+			Input:  test.DelegateReceiver.Store(test1Value),
+			Gas:    200000,
+		},
 	})
 	//retrieve value
 	_, receiverTestResult := instance.EvmApply(EvmParams{
 		HandleParams: HandleParams{Handle: handle},
-		From:         user,
-		To:           deployReceiverResult.ContractAddress,
-		Input:        test.DelegateReceiver.Retrieve(),
-		AvailableGas: 200000,
+		Invocation: Invocation{
+			Caller: user,
+			Callee: deployReceiverResult.ContractAddress,
+			Input:  test.DelegateReceiver.Retrieve(),
+			Gas:    200000,
+		},
 	})
-	if receiverTestResult.EvmError != "" {
-		t.Fatalf("vm error: %v", receiverTestResult.EvmError)
+	if receiverTestResult.ExecutionError != "" {
+		t.Fatalf("vm error: %v", receiverTestResult.ExecutionError)
 	}
 	receiverTestValue := common.BytesToHash(receiverTestResult.ReturnData).Big()
 	if test1Value.Cmp(receiverTestValue) != 0 {
@@ -111,21 +119,25 @@ func TestEvmDelegatecall(t *testing.T) {
 	//store value
 	_, _ = instance.EvmApply(EvmParams{
 		HandleParams: HandleParams{Handle: handle},
-		From:         user,
-		To:           deployCallerResult.ContractAddress,
-		Input:        test.DelegateCaller.Store(deployReceiverResult.ContractAddress, test2Value),
-		AvailableGas: 200000,
+		Invocation: Invocation{
+			Caller: user,
+			Callee: deployCallerResult.ContractAddress,
+			Input:  test.DelegateCaller.Store(deployReceiverResult.ContractAddress, test2Value),
+			Gas:    200000,
+		},
 	})
 	//retrieve value
 	_, callerTestResult := instance.EvmApply(EvmParams{
 		HandleParams: HandleParams{Handle: handle},
-		From:         user,
-		To:           deployCallerResult.ContractAddress,
-		Input:        test.DelegateCaller.Retrieve(),
-		AvailableGas: 200000,
+		Invocation: Invocation{
+			Caller: user,
+			Callee: deployCallerResult.ContractAddress,
+			Input:  test.DelegateCaller.Retrieve(),
+			Gas:    200000,
+		},
 	})
-	if callerTestResult.EvmError != "" {
-		t.Fatalf("vm error: %v", callerTestResult.EvmError)
+	if callerTestResult.ExecutionError != "" {
+		t.Fatalf("vm error: %v", callerTestResult.ExecutionError)
 	}
 	callerTestValue := common.BytesToHash(callerTestResult.ReturnData).Big()
 	if test2Value.Cmp(callerTestValue) != 0 {

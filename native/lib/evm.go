@@ -12,21 +12,28 @@ import (
 	"time"
 )
 
-type EvmParams struct {
-	HandleParams
-	From         common.Address  `json:"from"`
-	To           *common.Address `json:"to"`
-	Value        *hexutil.Big    `json:"value"`
-	Input        []byte          `json:"input"`
-	AvailableGas hexutil.Uint64  `json:"availableGas"`
-	GasPrice     *hexutil.Big    `json:"gasPrice"`
-	Context      EvmContext      `json:"context"`
+type Invocation struct {
+	Caller   common.Address  `json:"caller"`
+	Callee   *common.Address `json:"callee"`
+	Value    *hexutil.Big    `json:"value"`
+	Input    []byte          `json:"input"`
+	Gas      hexutil.Uint64  `json:"gas"`
+	ReadOnly bool            `json:"readOnly"`
+}
+
+type InvocationResult struct {
+	ReturnData      []byte          `json:"returnData"`
+	LeftOverGas     hexutil.Uint64  `json:"leftOverGas"`
+	ExecutionError  string          `json:"executionError"`
+	Reverted        bool            `json:"reverted"`
+	ContractAddress *common.Address `json:"contractAddress"`
 }
 
 type EvmContext struct {
 	ChainID           hexutil.Uint64      `json:"chainID"`
 	Coinbase          common.Address      `json:"coinbase"`
 	GasLimit          hexutil.Uint64      `json:"gasLimit"`
+	GasPrice          *hexutil.Big        `json:"gasPrice"`
 	BlockNumber       *hexutil.Big        `json:"blockNumber"`
 	Time              *hexutil.Big        `json:"time"`
 	BaseFee           *hexutil.Big        `json:"baseFee"`
@@ -38,23 +45,22 @@ type EvmContext struct {
 }
 
 // setDefaults for parameters that were omitted
-func (p *EvmParams) setDefaults() {
+func (p *Invocation) setDefaults() {
 	if p.Value == nil {
 		p.Value = (*hexutil.Big)(common.Big0)
 	}
-	if p.AvailableGas == 0 {
-		p.AvailableGas = (hexutil.Uint64)(math.MaxInt64)
+	if p.Gas == 0 {
+		p.Gas = (hexutil.Uint64)(math.MaxInt64)
 	}
-	if p.GasPrice == nil {
-		p.GasPrice = (*hexutil.Big)(common.Big0)
-	}
-	p.Context.setDefaults()
 }
 
 // setDefaults for parameters that were omitted
 func (c *EvmContext) setDefaults() {
 	if c.GasLimit == 0 {
 		c.GasLimit = (hexutil.Uint64)(math.MaxInt64)
+	}
+	if c.GasPrice == nil {
+		c.GasPrice = (*hexutil.Big)(common.Big0)
 	}
 	if c.BlockNumber == nil {
 		c.BlockNumber = (*hexutil.Big)(common.Big0)
@@ -113,17 +119,16 @@ func (c *EvmContext) getTracer(s *Service) (tracers.Tracer, error) {
 	return *tracerPtr, nil
 }
 
-type EvmResult struct {
-	UsedGas         hexutil.Uint64  `json:"usedGas"`
-	EvmError        string          `json:"evmError"`
-	ReturnData      []byte          `json:"returnData"`
-	ContractAddress *common.Address `json:"contractAddress"`
-	Reverted        bool            `json:"reverted"`
+type EvmParams struct {
+	HandleParams
+	Invocation Invocation `json:"invocation"`
+	Context    EvmContext `json:"context"`
 }
 
-func (s *Service) EvmApply(params EvmParams) (error, *EvmResult) {
+func (s *Service) EvmApply(params EvmParams) (error, *InvocationResult) {
 	// apply defaults to missing parameters
-	params.setDefaults()
+	params.Invocation.setDefaults()
+	params.Context.setDefaults()
 
 	err, statedb := s.statedbs.Get(params.Handle)
 	if err != nil {
@@ -137,9 +142,10 @@ func (s *Service) EvmApply(params EvmParams) (error, *EvmResult) {
 	}
 
 	var (
-		txContext = vm.TxContext{
-			Origin:   params.From,
-			GasPrice: params.GasPrice.ToInt(),
+		invocation = params.Invocation
+		txContext  = vm.TxContext{
+			Origin:   invocation.Caller,
+			GasPrice: params.Context.GasPrice.ToInt(),
 		}
 		blockContext = params.Context.getBlockContext()
 		chainConfig  = params.Context.getChainConfig()
@@ -154,9 +160,9 @@ func (s *Service) EvmApply(params EvmParams) (error, *EvmResult) {
 			ExternalCallback:        params.Context.ExternalCallback.execute,
 		}
 		evm              = vm.NewEVM(blockContext, txContext, statedb, chainConfig, evmConfig)
-		sender           = vm.AccountRef(params.From)
-		gas              = uint64(params.AvailableGas)
-		contractCreation = params.To == nil
+		sender           = vm.AccountRef(invocation.Caller)
+		gas              = uint64(invocation.Gas)
+		contractCreation = invocation.Callee == nil
 	)
 
 	var (
@@ -183,20 +189,24 @@ func (s *Service) EvmApply(params EvmParams) (error, *EvmResult) {
 		// - The EVM.create call can fail before it even reaches the point of incrementing the nonce. We have to make
 		//   sure to NOT decrement the nonce in that case. Hence, setting the nonce to the value before the EVM call in
 		//   case it was modified.
-		nonce := statedb.GetNonce(params.From)
+		nonce := statedb.GetNonce(invocation.Caller)
 		if nonce > 0 {
-			statedb.SetNonce(params.From, nonce-1)
+			statedb.SetNonce(invocation.Caller, nonce-1)
 		}
 		// we ignore returnData here because it holds the contract code that was just deployed
 		var deployedContractAddress common.Address
-		_, deployedContractAddress, gas, vmerr = evm.Create(sender, params.Input, gas, params.Value.ToInt())
+		_, deployedContractAddress, gas, vmerr = evm.Create(sender, invocation.Input, gas, invocation.Value.ToInt())
 		contractAddress = &deployedContractAddress
 		// if there is an error evm.Create might not have incremented the nonce as expected,
-		if statedb.GetNonce(params.From) != nonce {
-			statedb.SetNonce(params.From, nonce)
+		if statedb.GetNonce(invocation.Caller) != nonce {
+			statedb.SetNonce(invocation.Caller, nonce)
 		}
 	} else {
-		returnData, gas, vmerr = evm.Call(sender, *params.To, params.Input, gas, params.Value.ToInt())
+		if invocation.ReadOnly {
+			returnData, gas, vmerr = evm.StaticCall(sender, *invocation.Callee, invocation.Input, gas)
+		} else {
+			returnData, gas, vmerr = evm.Call(sender, *invocation.Callee, invocation.Input, gas, invocation.Value.ToInt())
+		}
 	}
 
 	// no error means successful transaction, otherwise failure
@@ -210,11 +220,11 @@ func (s *Service) EvmApply(params EvmParams) (error, *EvmResult) {
 		returnData = make([]byte, 0)
 	}
 
-	return nil, &EvmResult{
-		UsedGas:         params.AvailableGas - hexutil.Uint64(gas),
-		EvmError:        evmError,
+	return nil, &InvocationResult{
 		ReturnData:      returnData,
-		ContractAddress: contractAddress,
+		LeftOverGas:     hexutil.Uint64(gas),
+		ExecutionError:  evmError,
 		Reverted:        vmerr == vm.ErrExecutionReverted,
+		ContractAddress: contractAddress,
 	}
 }
