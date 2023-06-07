@@ -19,7 +19,7 @@ public abstract class BlockHashCallback extends LibEvmCallback {
         } catch (Exception e) {
             // note: make sure we do not throw any exception here because this callback is called by native code
             // for diagnostics we log the exception here
-            logger.warn("received invalid block hash collback", e);
+            logger.warn("received invalid block hash callback", e);
         }
         return Converter.toJson(Hash.ZERO);
     }
