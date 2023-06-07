@@ -8,6 +8,7 @@ import (
 	"libevm/test"
 	"math/big"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -140,7 +141,7 @@ func TestEvmExternalContracts(t *testing.T) {
 		Invocation: Invocation{
 			Caller: user,
 			Input:  test.NativeInterop.Deploy(),
-			Gas:    200000,
+			Gas:    300000,
 		},
 	})
 	if deployResult.ExecutionError != "" {
@@ -194,6 +195,23 @@ func TestEvmExternalContracts(t *testing.T) {
 	})
 	if callResult.ExecutionError != "" {
 		t.Fatalf("vm error: %v", callResult.ExecutionError)
+	}
+
+	_, delegateCallResult := instance.EvmApply(EvmParams{
+		HandleParams: handle,
+		Invocation: Invocation{
+			Caller: user,
+			Callee: deployResult.ContractAddress,
+			Input:  test.NativeInterop.GetForgerStakesDelegateCall(),
+			Gas:    200000,
+		},
+		Context: EvmContext{
+			ExternalContracts: []common.Address{forgerStakesContractAddress},
+			ExternalCallback:  &InvocationCallback{Callback(invocationCallbackHandle)},
+		},
+	})
+	if !strings.Contains(delegateCallResult.ExecutionError, "unsupported call method") {
+		t.Fatal("expected vm error on DelegateCall")
 	}
 }
 
