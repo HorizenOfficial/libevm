@@ -11,7 +11,7 @@ import (
 
 type InvocationCallback struct{ Callback }
 
-func (c *InvocationCallback) execute(caller, callee common.Address, value *big.Int, input []byte, gas uint64, readOnly bool) (ret []byte, leftOverGas uint64, err error) {
+func (c *InvocationCallback) execute(caller, callee common.Address, value *big.Int, input []byte, gas uint64, readOnly bool, depth int) (ret []byte, leftOverGas uint64, err error) {
 	if c == nil {
 		// fallback to noop
 		return nil, gas, nil
@@ -23,6 +23,7 @@ func (c *InvocationCallback) execute(caller, callee common.Address, value *big.I
 		Input:    input,
 		Gas:      hexutil.Uint64(gas),
 		ReadOnly: readOnly,
+		Depth:    depth,
 	}
 	result := new(InvocationResult)
 	err = c.Invoke(invocation, result)

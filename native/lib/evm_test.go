@@ -156,6 +156,7 @@ func TestEvmExternalContracts(t *testing.T) {
 		Input:    test.ForgerStakes.GetAllForgersStakes(),
 		Gas:      10000,
 		ReadOnly: true,
+		Depth:    1,
 	}
 	SetCallbackProxy(func(handle int, args string) string {
 		switch handle {

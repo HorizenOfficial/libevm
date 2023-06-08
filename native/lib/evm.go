@@ -19,6 +19,7 @@ type Invocation struct {
 	Input    []byte          `json:"input"`
 	Gas      hexutil.Uint64  `json:"gas"`
 	ReadOnly bool            `json:"readOnly"`
+	Depth    int             `json:"depth"`
 }
 
 type InvocationResult struct {
@@ -156,6 +157,7 @@ func (s *Service) EvmApply(params EvmParams) (error, *InvocationResult) {
 			EnablePreimageRecording: false,
 			JumpTable:               nil,
 			ExtraEips:               nil,
+			InitialDepth:            invocation.Depth,
 			ExternalContracts:       params.Context.ExternalContracts,
 			ExternalCallback:        params.Context.ExternalCallback.execute,
 		}
