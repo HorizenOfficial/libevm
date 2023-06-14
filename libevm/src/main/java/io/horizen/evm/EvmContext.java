@@ -15,4 +15,5 @@ public class EvmContext {
     public Address[] externalContracts;
     public InvocationCallback externalCallback;
     public Tracer tracer;
+    public int initialDepth;
 }

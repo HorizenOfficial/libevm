@@ -15,11 +15,11 @@ public class EvmTest extends LibEvmTestBase {
     private final BigInteger v5m = BigInteger.valueOf(5000000);
 
     private Invocation call(Address from, Address to, BigInteger value, byte[] input) {
-        return new Invocation(from, to, value, input, gasLimit, false, 0);
+        return new Invocation(from, to, value, input, gasLimit, false);
     }
 
     private Invocation create(Address from, byte[] input) {
-        return new Invocation(from, null, null, input, gasLimit, false, 0);
+        return new Invocation(from, null, null, input, gasLimit, false);
     }
 
     @Test
@@ -191,7 +191,7 @@ public class EvmTest extends LibEvmTestBase {
 
             class NativeContractCallback extends InvocationCallback {
                 @Override
-                protected InvocationResult execute(Invocation args) {
+                protected InvocationResult execute(ExternalInvocation args) {
                     assertEquals("expected call from deployed contract", contractAddress, args.caller);
                     assertEquals("expected call to forger stakes contract", forgerStakesContractAddress, args.callee);
                     assertEquals("expected call with no value", BigInteger.ZERO, args.value);
@@ -207,10 +207,14 @@ public class EvmTest extends LibEvmTestBase {
                 var context = new EvmContext();
                 context.externalContracts = new Address[] {forgerStakesContractAddress};
                 context.externalCallback = nativeContractCallback;
+                context.initialDepth = 20;
 
                 // call GetForgerStakes() function on the contract
-                var callResult = Evm.Apply(statedb,
-                    new Invocation(addr1, contractAddress, null, funcGetForgerStakes, gasLimit, false, 123), context);
+                var callResult = Evm.Apply(
+                    statedb,
+                    new Invocation(addr1, contractAddress, null, funcGetForgerStakes, gasLimit, false),
+                    context
+                );
                 assertEquals("unexpected error message", "", callResult.executionError);
                 assertArrayEquals("unexpected forger stakes data", mockedForgerStakesData, callResult.returnData);
 
@@ -257,7 +261,7 @@ public class EvmTest extends LibEvmTestBase {
         try (var db = new MemoryDatabase(); var statedb = new StateDB(db, Hash.ZERO)) {
             statedb.setBalance(addr1, v5m);
             var result =
-                Evm.Apply(statedb, new Invocation(addr1, null, null, input, insufficientGasLimit, false, 0), null);
+                Evm.Apply(statedb, new Invocation(addr1, null, null, input, insufficientGasLimit, false), null);
             assertEquals(
                 "unexpected error message",
                 "contract creation code storage out of gas",

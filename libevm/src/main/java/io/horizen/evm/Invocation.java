@@ -11,7 +11,6 @@ public class Invocation {
     public final byte[] input;
     public final BigInteger gas;
     public final boolean readOnly;
-    public final int depth;
 
     public Invocation(
         @JsonProperty("caller") Address caller,
@@ -19,8 +18,7 @@ public class Invocation {
         @JsonProperty("value") BigInteger value,
         @JsonProperty("input") byte[] input,
         @JsonProperty("gas") BigInteger gas,
-        @JsonProperty("readOnly") boolean readOnly,
-        @JsonProperty("depth") int depth
+        @JsonProperty("readOnly") boolean readOnly
     ) {
         this.caller = caller;
         this.callee = callee;
@@ -28,6 +26,5 @@ public class Invocation {
         this.input = input;
         this.gas = gas;
         this.readOnly = readOnly;
-        this.depth = depth;
     }
 }

@@ -6,13 +6,13 @@ import org.apache.logging.log4j.Logger;
 public abstract class InvocationCallback extends LibEvmCallback {
     private static final Logger logger = LogManager.getLogger();
 
-    protected abstract InvocationResult execute(Invocation args);
+    protected abstract InvocationResult execute(ExternalInvocation args);
 
     @Override
     public String invoke(String args) {
         logger.debug("received external contract callback");
         try {
-            var invocation = Converter.fromJson(args, Invocation.class);
+            var invocation = Converter.fromJson(args, ExternalInvocation.class);
             return Converter.toJson(execute(invocation));
         } catch (Exception e) {
             // note: make sure we do not throw any exception here because this callback is called by native code

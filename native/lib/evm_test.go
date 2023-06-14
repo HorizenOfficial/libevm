@@ -149,19 +149,21 @@ func TestEvmExternalContracts(t *testing.T) {
 	}
 
 	const invocationCallbackHandle = 128967
-	expectedInvocation := &Invocation{
-		Caller:   *deployResult.ContractAddress,
-		Callee:   &forgerStakesContractAddress,
-		Value:    (*hexutil.Big)(common.Big0),
-		Input:    test.ForgerStakes.GetAllForgersStakes(),
-		Gas:      10000,
-		ReadOnly: true,
-		Depth:    1,
+	expectedInvocation := &ExternalInvocation{
+		Invocation: Invocation{
+			Caller:   *deployResult.ContractAddress,
+			Callee:   &forgerStakesContractAddress,
+			Value:    (*hexutil.Big)(common.Big0),
+			Input:    test.ForgerStakes.GetAllForgersStakes(),
+			Gas:      10000,
+			ReadOnly: true,
+		},
+		Depth: 1,
 	}
 	SetCallbackProxy(func(handle int, args string) string {
 		switch handle {
 		case invocationCallbackHandle:
-			actual := new(Invocation)
+			actual := new(ExternalInvocation)
 			err := interop.Deserialize(args, actual)
 			if err != nil {
 				panic(fmt.Sprintf("invalid callback arguments: %v", args))
@@ -192,6 +194,7 @@ func TestEvmExternalContracts(t *testing.T) {
 		Context: EvmContext{
 			ExternalContracts: []common.Address{forgerStakesContractAddress},
 			ExternalCallback:  &InvocationCallback{Callback(invocationCallbackHandle)},
+			InitialDepth:      20,
 		},
 	})
 	if callResult.ExecutionError != "" {

@@ -19,7 +19,6 @@ type Invocation struct {
 	Input    []byte          `json:"input"`
 	Gas      hexutil.Uint64  `json:"gas"`
 	ReadOnly bool            `json:"readOnly"`
-	Depth    int             `json:"depth"`
 }
 
 type InvocationResult struct {
@@ -43,6 +42,7 @@ type EvmContext struct {
 	Tracer            *int                `json:"tracer"`
 	ExternalContracts []common.Address    `json:"externalContracts"`
 	ExternalCallback  *InvocationCallback `json:"externalCallback"`
+	InitialDepth      int                 `json:"initialDepth"`
 }
 
 // setDefaults for parameters that were omitted
@@ -157,7 +157,7 @@ func (s *Service) EvmApply(params EvmParams) (error, *InvocationResult) {
 			EnablePreimageRecording: false,
 			JumpTable:               nil,
 			ExtraEips:               nil,
-			InitialDepth:            invocation.Depth,
+			InitialDepth:            params.Context.InitialDepth,
 			ExternalContracts:       params.Context.ExternalContracts,
 			ExternalCallback:        params.Context.ExternalCallback.execute,
 		}
