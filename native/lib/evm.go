@@ -4,6 +4,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core"
+	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/eth/tracers"
 	"github.com/ethereum/go-ethereum/params"
@@ -109,21 +110,50 @@ func (c *EvmContext) getChainConfig() *params.ChainConfig {
 }
 
 // getTracer retrieves an instance of a tracer if a handle is given
-func (c *EvmContext) getTracer(s *Service) (tracers.Tracer, error) {
+func (c *EvmContext) getTracer(s *Service) (error, tracers.Tracer) {
 	if c.Tracer == nil {
 		return nil, nil
 	}
 	err, tracerPtr := s.tracers.Get(*c.Tracer)
 	if err != nil {
-		return nil, err
+		return err, nil
 	}
-	return *tracerPtr, nil
+	return nil, *tracerPtr
 }
 
 type EvmParams struct {
 	HandleParams
 	Invocation Invocation `json:"invocation"`
 	Context    EvmContext `json:"context"`
+}
+
+func (s *Service) getEvm(context EvmContext, stateDB *state.StateDB, origin common.Address) (error, *vm.EVM) {
+	// get tracer if a handle is given
+	err, tracer := context.getTracer(s)
+	if err != nil {
+		return err, nil
+	}
+
+	var (
+		txContext = vm.TxContext{
+			Origin:   origin,
+			GasPrice: context.GasPrice.ToInt(),
+		}
+		blockContext = context.getBlockContext()
+		chainConfig  = context.getChainConfig()
+		evmConfig    = vm.Config{
+			Debug:                   tracer != nil,
+			Tracer:                  tracer,
+			NoBaseFee:               false,
+			EnablePreimageRecording: false,
+			JumpTable:               nil,
+			ExtraEips:               nil,
+			InitialDepth:            context.InitialDepth,
+			ExternalContracts:       context.ExternalContracts,
+			ExternalCallback:        context.ExternalCallback.execute,
+		}
+	)
+	return nil, vm.NewEVM(blockContext, txContext, stateDB, chainConfig, evmConfig)
 }
 
 func (s *Service) EvmApply(params EvmParams) (error, *InvocationResult) {
@@ -136,32 +166,13 @@ func (s *Service) EvmApply(params EvmParams) (error, *InvocationResult) {
 		return err, nil
 	}
 
-	// get tracer if a handle is given
-	tracer, err := params.Context.getTracer(s)
+	err, evm := s.getEvm(params.Context, statedb, params.Invocation.Caller)
 	if err != nil {
 		return err, nil
 	}
 
 	var (
-		invocation = params.Invocation
-		txContext  = vm.TxContext{
-			Origin:   invocation.Caller,
-			GasPrice: params.Context.GasPrice.ToInt(),
-		}
-		blockContext = params.Context.getBlockContext()
-		chainConfig  = params.Context.getChainConfig()
-		evmConfig    = vm.Config{
-			Debug:                   tracer != nil,
-			Tracer:                  tracer,
-			NoBaseFee:               false,
-			EnablePreimageRecording: false,
-			JumpTable:               nil,
-			ExtraEips:               nil,
-			InitialDepth:            params.Context.InitialDepth,
-			ExternalContracts:       params.Context.ExternalContracts,
-			ExternalCallback:        params.Context.ExternalCallback.execute,
-		}
-		evm              = vm.NewEVM(blockContext, txContext, statedb, chainConfig, evmConfig)
+		invocation       = params.Invocation
 		sender           = vm.AccountRef(invocation.Caller)
 		gas              = uint64(invocation.Gas)
 		contractCreation = invocation.Callee == nil
