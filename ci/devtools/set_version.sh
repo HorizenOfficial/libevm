@@ -63,11 +63,11 @@ else
 fi
 
 # Checking the format of the versions
-if ! [[ "\${version_old}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?(-SNAPSHOT)?$ ]]; then
+if ! [[ "\${version_old}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-RC[0-9]+)?(-SNAPSHOT)?$ ]]; then
   usage
 fi
 
-if ! [[ "\${version_new}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?(-SNAPSHOT)?$ ]]; then
+if ! [[ "\${version_new}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-RC[0-9]+)?(-SNAPSHOT)?$ ]]; then
   usage
 fi
 
