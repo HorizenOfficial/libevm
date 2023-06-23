@@ -1,6 +1,6 @@
 #!/bin/bash
-
 set -eo pipefail
+set -x
 
 export CONTAINER_PUBLISH="false"
 PUBLISH_BUILD="${PUBLISH_BUILD:-false}"
@@ -141,4 +141,5 @@ unset GITHUB_TOKEN
 unset MAVEN_KEY_ARCHIVE_URL
 unset MAVEN_KEY_ARCHIVE_PASSWORD
 
+exit 1
 set +eo pipefail

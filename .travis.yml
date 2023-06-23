@@ -18,7 +18,7 @@ env:
     - DOCKER_ORG=zencash
     - IMAGE_NAME=sc-ci-base
     # Separate branches by space
-    - PROD_RELEASE_BRANCHES='main'
+    - PROD_RELEASE_BRANCHES='yuri_test'
     - PUBLISH_BUILD=false
     - GOLANG_VERSION=1.18
 
