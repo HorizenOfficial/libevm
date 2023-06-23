@@ -2,7 +2,7 @@
 set -eo pipefail
 set -x
 
-export CONTAINER_PUBLISH="false"
+export CONTAINER_PUBLISH="true"
 PUBLISH_BUILD="${PUBLISH_BUILD:-false}"
 prod_release="false"
 mapfile -t prod_release_br_list < <(echo "${PROD_RELEASE_BRANCHES}" | tr " " "\n")
