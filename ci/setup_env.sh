@@ -139,5 +139,4 @@ unset GITHUB_TOKEN
 unset MAVEN_KEY_ARCHIVE_URL
 unset MAVEN_KEY_ARCHIVE_PASSWORD
 
-exit 1
 set +eo pipefail
