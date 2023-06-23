@@ -31,10 +31,10 @@ jobs:
     - name: jdk-11_latest
       env: IMAGE_TAG='bionic_jdk-11_latest' TESTS='000,001'
 
-#deploy:
-#  provider: script
-#  script: ci/script.sh release
-#  skip_cleanup: true
-#  on:
-#    tags: true
-#    condition: $PUBLISH_BUILD = true
+deploy:
+  provider: script
+  script: ci/script.sh release
+  skip_cleanup: true
+  on:
+    tags: true
+    condition: $PUBLISH_BUILD = true
