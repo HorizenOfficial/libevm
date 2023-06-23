@@ -13,7 +13,7 @@ IMAGE_NAME="${IMAGE_NAME:-sc-ci-base}"
 IMAGE_TAG="${IMAGE_TAG:-bionic_jdk-11_latest}"
 image="${DOCKER_ORG}/${IMAGE_NAME}:${IMAGE_TAG}"
 export DISABLE_JAVADOC_LINT="${DISABLE_JAVADOC_LINT:-false}"
-export CONTAINER_PUBLISH="${CONTAINER_PUBLISH:-false}"
+export PUBLISH_BUILD="${PUBLISH_BUILD:-false}"
 
 if [ "${1}" = "tests" ]; then
   # run tests in docker or natively
@@ -25,7 +25,7 @@ if [ "${1}" = "tests" ]; then
       docker run --rm -t -v "$workdir":/build -w /build \
         --entrypoint /build/ci/docker/entrypoint.sh \
         -v "${HOME}"/key.asc:/key.asc \
-        -e CONTAINER_PUBLISH \
+        -e PUBLISH_BUILD \
         -e TESTS \
         -e GOLANG_VERSION \
         -e LOCAL_USER_ID="$(id -u)" \
@@ -44,7 +44,7 @@ elif [ "${1}" = "release" ]; then
       --entrypoint /build/ci/docker/entrypoint.sh \
       -v "${HOME}"/key.asc:/key.asc \
       -e DISABLE_JAVADOC_LINT \
-      -e CONTAINER_PUBLISH \
+      -e PUBLISH_BUILD \
       -e TRAVIS_TAG \
       -e LOCAL_USER_ID="$(id -u)" \
       -e LOCAL_GRP_ID="$(id -g)"\

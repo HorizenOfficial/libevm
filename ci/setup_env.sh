@@ -2,7 +2,6 @@
 set -eo pipefail
 set -x
 
-export CONTAINER_PUBLISH="true"
 PUBLISH_BUILD="${PUBLISH_BUILD:-false}"
 prod_release="false"
 mapfile -t prod_release_br_list < <(echo "${PROD_RELEASE_BRANCHES}" | tr " " "\n")
@@ -24,7 +23,7 @@ function import_gpg_keys () {
 
   if [ "${#my_arr[@]}" -eq 0 ]; then
     echo "Warning: there are ZERO gpg keys to import. Please check if *MAINTAINERS_KEYS variable(s) are set correctly. The build is not going to be released ..."
-    export CONTAINER_PUBLISH="false"
+    export PUBLISH_BUILD="false"
   else
     # shellcheck disable=SC2145
     printf "%s\n" "Tagged build, fetching keys:" "${@}" ""
@@ -33,7 +32,7 @@ function import_gpg_keys () {
       gpg -v --batch --keyserver hkp://keyserver.ubuntu.com --recv-keys "${key}" ||
       gpg -v --batch --keyserver hkp://pgp.mit.edu:80 --recv-keys "${key}" ||
       gpg -v --batch --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys "${key}" ||
-      { echo -e "Warning: ${key} can not be found on GPG key servers. Please upload it to at least one of the following GPG key servers:\nhttps://keys.openpgp.org/\nhttps://keyserver.ubuntu.com/\nhttps://pgp.mit.edu/"; export CONTAINER_PUBLISH="false"; }
+      { echo -e "Warning: ${key} can not be found on GPG key servers. Please upload it to at least one of the following GPG key servers:\nhttps://keys.openpgp.org/\nhttps://keyserver.ubuntu.com/\nhttps://pgp.mit.edu/"; export PUBLISH_BUILD="false"; }
     done
   fi
 }
@@ -56,13 +55,13 @@ function release_prep() {
   curl -sLH "Authorization: token ${GITHUB_TOKEN}" -H "Accept: application/vnd.github.v3.raw" "${MAVEN_KEY_ARCHIVE_URL}" |
     openssl enc -d -aes-256-cbc -md sha256 -pass pass:"${MAVEN_KEY_ARCHIVE_PASSWORD}" |
     tar -xzf- -C "${HOME}"
-  export CONTAINER_PUBLISH="true"
+  export PUBLISH_BUILD="true"
 }
 
 # empty key.asc file in case we're not signing
 touch "${HOME}/key.asc"
 
-if [ -n "${TRAVIS_TAG}" ] && [ "${PUBLISH_BUILD}" = "true" ]; then
+if [ -n "${TRAVIS_TAG}" ]; then
   # checking if MAINTAINER_KEYS is set
   if [ -z "${MAINTAINER_KEYS}" ]; then
     echo "MAINTAINER_KEYS variable is not set. Make sure to set it up for release build!!!"
@@ -80,18 +79,18 @@ if [ -n "${TRAVIS_TAG}" ] && [ "${PUBLISH_BUILD}" = "true" ]; then
         # Checking format of production release pom version
         if ! [[ "${pom_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-RC[0-9]+)?$ ]]; then
           echo "Warning: package(s) version is in the wrong format for PRODUCTION} release. Expecting: d.d.d(-RC[0-9]+)?. The build is not going to be released !!!"
-          export CONTAINER_PUBLISH="false"
+          export PUBLISH_BUILD="false"
         fi
 
         # Checking Github tag format
         if ! [[ "${TRAVIS_TAG}" == "${pom_version}" ]]; then
           echo "" && echo "=== Warning: GIT tag format differs from the pom file version. ===" && echo ""
           echo -e "Github tag name: ${TRAVIS_TAG}\nPom file version: ${pom_version}.\nThe build is not going to be released !!!"
-          export CONTAINER_PUBLISH="false"
+          export PUBLISH_BUILD="false"
         fi
 
         # Announcing PROD release
-        if [ "${CONTAINER_PUBLISH}" == "true" ]; then
+        if [ "${PUBLISH_BUILD}" == "true" ]; then
           prod_release="true"
           release_prep Production
         fi
@@ -101,18 +100,18 @@ if [ -n "${TRAVIS_TAG}" ] && [ "${PUBLISH_BUILD}" = "true" ]; then
       # Checking if package version matches DEV release version
       if ! [[ "${pom_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-RC[0-9]+)?(-SNAPSHOT){1}$ ]]; then
         echo "Warning: package(s) version is in the wrong format for DEVELOPMENT release. Expecting: d.d.d(-RC[0-9]+)?(-SNAPSHOT){1}. The build is not going to be released !!!"
-        export CONTAINER_PUBLISH="false"
+        export PUBLISH_BUILD="false"
       fi
 
       # Checking Github tag format
       if ! [[ "${TRAVIS_TAG}" =~ "${pom_version}"[0-9]*$ ]]; then
         echo "" && echo "=== Warning: GIT tag format differs from the pom file version. ===" && echo ""
         echo -e "Github tag name: ${TRAVIS_TAG}\nPom file version: ${ROOT_POM_VERSION}.\nThe build is not going to be released !!!"
-        export CONTAINER_PUBLISH="false"
+        export PUBLISH_BUILD="false"
       fi
 
       # Announcing DEV release
-      if [ "${CONTAINER_PUBLISH}" == "true" ]; then
+      if [ "${PUBLISH_BUILD}" == "true" ]; then
         release_prep Development
       fi
     fi
@@ -120,7 +119,7 @@ if [ -n "${TRAVIS_TAG}" ] && [ "${PUBLISH_BUILD}" = "true" ]; then
 fi
 
 # unset credentials if not publishing
-if [ "${CONTAINER_PUBLISH}" = "false" ]; then
+if [ "${PUBLISH_BUILD}" = "false" ]; then
   export CONTAINER_OSSRH_JIRA_USERNAME=""
   export CONTAINER_OSSRH_JIRA_PASSWORD=""
   export CONTAINER_GPG_KEY_NAME=""
@@ -130,7 +129,6 @@ if [ "${CONTAINER_PUBLISH}" = "false" ]; then
   unset CONTAINER_GPG_KEY_NAME
   unset CONTAINER_GPG_PASSPHRASE
   echo "" && echo "=== NOT a release build ===" && echo ""
-  export PUBLISH_BUILD="false"
 fi
 
 # unset credentials after use
