@@ -46,6 +46,8 @@ function check_signed_tag () {
   fi
 
   echo "Git tag's = ${tag} gpg signature is NOT valid. The build is not going to be released..."
+  export PUBLISH_BUILD="false"
+
   return 1
 }
 
@@ -116,6 +118,8 @@ if [ -n "${TRAVIS_TAG}" ]; then
       fi
     fi
   fi
+else
+  export PUBLISH_BUILD="false"
 fi
 
 # unset credentials if not publishing
