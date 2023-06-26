@@ -18,8 +18,7 @@ env:
     - DOCKER_ORG=zencash
     - IMAGE_NAME=sc-ci-base
     # Separate branches by space
-    - PROD_RELEASE_BRANCHES='master'
-    - PUBLISH_BUILD=false
+    - PROD_RELEASE_BRANCHES='main'
     - GOLANG_VERSION=1.18
 
 script:
@@ -30,7 +29,7 @@ script:
 jobs:
   include:
     - name: jdk-11_latest
-      env: PUBLISH_BUILD=true IMAGE_TAG='bionic_jdk-11_latest' TESTS='000,001'
+      env: IMAGE_TAG='bionic_jdk-11_latest' TESTS='000,001'
 
 deploy:
   provider: script

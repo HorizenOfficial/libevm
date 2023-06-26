@@ -8,10 +8,10 @@ version of the artifacts by setting the provided version for all the required de
 
 ---
 ## Prerequisites for publishing a package:
-  - Singed by GPG key commit and valid GitHub tag in the format of `DIGIT.DIGIT.DIGIT(-rc[0-9]+)?` or `DIGIT.DIGIT.DIGIT(-rc[0-9]+)?-SNAPSHOT`
+  - Singed by GPG key commit and valid GitHub tag in the format of `DIGIT.DIGIT.DIGIT(-RC[0-9]+)?` or `DIGIT.DIGIT.DIGIT(-RC[0-9]+)?-SNAPSHOT`
   - GitHub tag matching regex:
-    - PRDO release: `${pom_version_of_package}"(-rc[0-9]+)?$`
-    - DEV release: `${pom_version_of_package}"(-rc[0-9]+)?-SNAPSHOT[1-9]*$`
+    - PRDO release: `${pom_version_of_package}"(-RC[0-9]+)?$`
+    - DEV release: `${pom_version_of_package}"(-RC[0-9]+)?-SNAPSHOT[1-9]*$`
   - Your(a person who pushes a tag) GPG key being added to CI/CD pipeline build settings
 
 Otherwise, the build process will run without entering the publishing stage.
