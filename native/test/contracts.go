@@ -12,7 +12,7 @@ import (
 // note: other interesting parameters for the solidity compiler include:
 // --opcodes to get the compiled code in a "readable" opcode format
 // --storage-layout to get the storage layout of the contract
-//go:generate solc --bin --bin-runtime --hashes --optimize --evm-version paris -o compiled --overwrite Storage.sol OpCodes.sol DelegateCaller.sol DelegateReceiver.sol NativeInterop.sol NativeInteropStack.sol
+//go:generate solc --bin --bin-runtime --hashes --optimize --evm-version paris -o compiled --overwrite Storage.sol OpCodes.sol DelegateCaller.sol DelegateReceiver.sol NativeInterop.sol
 //go:embed compiled
 var compiled embed.FS
 

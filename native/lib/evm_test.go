@@ -141,7 +141,7 @@ func TestEvmExternalContracts(t *testing.T) {
 		Invocation: Invocation{
 			Caller: user,
 			Input:  test.NativeInterop.Deploy(),
-			Gas:    300000,
+			Gas:    500000,
 		},
 	})
 	if deployResult.ExecutionError != "" {
