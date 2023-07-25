@@ -26,7 +26,7 @@ public class Tracer extends ResourceHandle {
 
     // Transaction level
     public void CaptureTxEnd(BigInteger restGas) {
-        LibEvm.invoke("TracerCaptureTxStart", new TracerTxEndParams(handle, restGas));
+        LibEvm.invoke("TracerCaptureTxEnd", new TracerTxEndParams(handle, restGas));
     }
 
     // Top call frame
