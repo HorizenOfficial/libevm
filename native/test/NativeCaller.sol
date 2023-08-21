@@ -8,16 +8,20 @@ contract NativeCaller {
 
     BaseNativeInterface nativeContract = BaseNativeInterface(0x00000000000000000000000000000000DeaDBeef);
 
+    uint256 private constant STATIC_CALL_GAS_LIMIT = 10000;
+    uint256 private constant CALL_GAS_LIMIT = 25000;
+
+
     //This function tests that calling a readonly method on a Native Smart Contract using staticcall works
     // and that calling then a readwrite method works again, so the statedb is readwrite again.
     function testStaticCallOnReadonlyMethod() public returns (uint32) {
 	address contractAddr = address(nativeContract);
-	(bool success, bytes memory result) = contractAddr.staticcall{gas:10000}(
+	(bool success, bytes memory result) = contractAddr.staticcall{gas:STATIC_CALL_GAS_LIMIT}(
             abi.encodeWithSignature("retrieve()")
         );
 	(uint32 a) = abi.decode(result, (uint32));
 	//Check that statedb is readwrite again
-	(bool success2, bytes memory result2) = contractAddr.call{gas:25000}(
+	(bool success2, bytes memory result2) = contractAddr.call{gas:CALL_GAS_LIMIT}(
             abi.encodeWithSignature("inc()")
         );
 	require(success2, "call should work");
@@ -29,12 +33,12 @@ contract NativeCaller {
     function testStaticCallOnReadwriteMethod() public returns (uint32) {
 	address contractAddr = address(nativeContract);
 	//This should fail
-	(bool success, bytes memory result) = contractAddr.staticcall{gas:25000}(
+	(bool success, bytes memory result) = contractAddr.staticcall{gas:CALL_GAS_LIMIT}(
             abi.encodeWithSignature("inc()")
         );
 	require(!success, "Staticcall should fail");
 	//This should work instead.
-	(bool success2, bytes memory result2) = contractAddr.call{gas:25000}(
+	(bool success2, bytes memory result2) = contractAddr.call{gas:CALL_GAS_LIMIT}(
             abi.encodeWithSignature("inc()")
         );
 	require(success2, "call should work");
@@ -43,15 +47,15 @@ contract NativeCaller {
 
     //This function calls a readwrite method on a Native Smart Contract using a contract call.
     // It should fail because the Solidity interface describing the Native Smart Contract defines the method as view,
-    // even if it actually is readwrite. Using the contract interface, the tx should be automatucally reverted.
+    // even if it actually is readwrite. Using the contract interface, the tx should be automatically reverted.
     function testStaticCallOnReadwriteMethodContractCall() public returns (uint32) {
-	return nativeContract.inc{gas: 25000}();
+	return nativeContract.inc{gas: CALL_GAS_LIMIT}();
     }
 
     //This function is used to test staticcall with nested calls (native => evm => native).
     function testNestedCalls() public returns (uint32) {
 	address contractAddr = address(nativeContract);
-	(bool success, bytes memory result) = contractAddr.call{gas:25000}(
+	(bool success, bytes memory result) = contractAddr.call{gas:CALL_GAS_LIMIT}(
             abi.encodeWithSignature("inc()")
         );
 	require(success, "call should work");
