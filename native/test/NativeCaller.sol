@@ -58,8 +58,8 @@ contract NativeCaller {
         (bool success, bytes memory result) = contractAddr.call{gas:CALL_GAS_LIMIT}(
             abi.encodeWithSignature("inc()")
         );
-        require(success, "call should work");
-        return abi.decode(result, (uint32));
+	require(success);
+	return abi.decode(result, (uint32));
     }
 
 }

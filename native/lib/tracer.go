@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/eth/tracers"
 	"github.com/ethereum/go-ethereum/eth/tracers/logger"
-	"time"
 
 	// Force-load the tracer engines to trigger registration
 	_ "github.com/ethereum/go-ethereum/eth/tracers/native"
@@ -199,6 +200,13 @@ func (s *Service) TracerCaptureEnter(params TracerEnterParams) error {
 	if err != nil {
 		return err
 	}
+
+	value := params.Value.ToInt()
+	//In Geth in case of STATICCALL value is nil, so it doesn't appear in the tracer result
+	if params.OpCode == "STATICCALL" {
+		value = nil
+	}
+
 	tracer := *tracerPtr
 	tracer.CaptureEnter(
 		vm.StringToOp(params.OpCode),
@@ -206,7 +214,7 @@ func (s *Service) TracerCaptureEnter(params TracerEnterParams) error {
 		params.To,
 		params.Input,
 		uint64(params.Gas),
-		params.Value.ToInt(),
+		value,
 	)
 	return nil
 }
