@@ -203,6 +203,10 @@ func (s *Service) EvmApply(params EvmParams) (error, *InvocationResult) {
 		// - The EVM.create call can fail before it even reaches the point of incrementing the nonce. We have to make
 		//   sure to NOT decrement the nonce in that case. Hence, setting the nonce to the value before the EVM call in
 		//   case it was modified.
+		// This applies only to top level calls. It may happen that a contract creation is requested by a native smart contract.
+		// In this case the nonce of the native smart contract is not incremented before this call, so it is not necessary to
+		// decrement it before calling evm.Create.
+
 		nonce := statedb.GetNonce(invocation.Caller)
 		if nonce > 0 && params.Context.InitialDepth == 0 {
 			statedb.SetNonce(invocation.Caller, nonce-1)
