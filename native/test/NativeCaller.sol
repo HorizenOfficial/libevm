@@ -8,7 +8,6 @@ contract NativeCaller {
 
     BaseNativeInterface nativeContract = BaseNativeInterface(0x00000000000000000000000000000000DeaDBeef);
 
-    uint256 private constant STATIC_CALL_GAS_LIMIT = 10000;
     uint256 private constant CALL_GAS_LIMIT = 25000;
 
 
@@ -16,7 +15,7 @@ contract NativeCaller {
     // and that calling then a readwrite method works again, so the statedb is readwrite again.
     function testStaticCallOnReadonlyMethod() public returns (uint32) {
         address contractAddr = address(nativeContract);
-        (bool success, bytes memory result) = contractAddr.staticcall{gas:STATIC_CALL_GAS_LIMIT}(
+        (bool success, bytes memory result) = contractAddr.staticcall{gas:CALL_GAS_LIMIT}(
             abi.encodeWithSignature("retrieve()")
         );
         (uint32 a) = abi.decode(result, (uint32));

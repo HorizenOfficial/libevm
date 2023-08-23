@@ -1,6 +1,10 @@
 package lib
 
 import (
+	"math"
+	"math/big"
+	"time"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core"
@@ -8,9 +12,6 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/eth/tracers"
 	"github.com/ethereum/go-ethereum/params"
-	"math"
-	"math/big"
-	"time"
 )
 
 type Invocation struct {
@@ -203,7 +204,7 @@ func (s *Service) EvmApply(params EvmParams) (error, *InvocationResult) {
 		//   sure to NOT decrement the nonce in that case. Hence, setting the nonce to the value before the EVM call in
 		//   case it was modified.
 		nonce := statedb.GetNonce(invocation.Caller)
-		if nonce > 0 {
+		if nonce > 0 && params.Context.InitialDepth == 0 {
 			statedb.SetNonce(invocation.Caller, nonce-1)
 		}
 		// we ignore returnData here because it holds the contract code that was just deployed
@@ -211,7 +212,7 @@ func (s *Service) EvmApply(params EvmParams) (error, *InvocationResult) {
 		_, deployedContractAddress, gas, vmerr = evm.Create(sender, invocation.Input, gas, invocation.Value.ToInt())
 		contractAddress = &deployedContractAddress
 		// if there is an error evm.Create might not have incremented the nonce as expected,
-		if statedb.GetNonce(invocation.Caller) != nonce {
+		if statedb.GetNonce(invocation.Caller) != nonce && params.Context.InitialDepth == 0 {
 			statedb.SetNonce(invocation.Caller, nonce)
 		}
 	} else {
