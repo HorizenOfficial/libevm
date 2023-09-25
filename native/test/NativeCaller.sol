@@ -4,6 +4,9 @@ pragma solidity >=0.7.0 <0.9.0;
 
 import "./BaseNativeInterface.sol";
 
+// This contract is used for testing interoperability between Solidity smart contracts and native smart contracts.
+// Each function tests a possible interaction between the 2 contract types (e.g. call, static call, solidity interface...).
+// It invokes functions of the dummy native contract defined in sdk/src/test/scala/io/horizen/account/state/ContractInteropCallTest.scala.
 contract NativeCaller {
 
     BaseNativeInterface nativeContract = BaseNativeInterface(0x00000000000000000000000000000000DeaDBeef);
