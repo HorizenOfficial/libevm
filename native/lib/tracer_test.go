@@ -2,12 +2,14 @@ package lib
 
 import (
 	"encoding/json"
+	"libevm/test"
+	"math"
+	"math/big"
+	"testing"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/eth/tracers/logger"
-	"libevm/test"
-	"math/big"
-	"testing"
 )
 
 func getTracerResult(t *testing.T, params TracerCreateParams) *TracerResult {
@@ -28,6 +30,7 @@ func getTracerResult(t *testing.T, params TracerCreateParams) *TracerResult {
 			Caller: sender,
 			Callee: nil,
 			Input:  test.Storage.Deploy(initialValue),
+			Gas:    (hexutil.Uint64)(math.MaxInt64),
 		},
 		Context: EvmContext{
 			BaseFee: (*hexutil.Big)(new(big.Int)),
