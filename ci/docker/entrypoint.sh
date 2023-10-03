@@ -32,7 +32,7 @@ if [ -n "${TESTS:-}" ]; then
   DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -yq software-properties-common
   # Repo for solc
   add-apt-repository -y ppa:ethereum/ethereum
-  # Repo for golang-go version >= 1.18
+  # Repo for golang-go version >= 1.21
   add-apt-repository -y ppa:longsleep/golang-backports
   apt-get update
   DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -yq gcc gcc-mingw-w64-x86-64 libc6-dev solc golang-"${GOLANG_VERSION}"

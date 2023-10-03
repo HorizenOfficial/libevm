@@ -7,7 +7,7 @@ command -v docker &> /dev/null && have_docker="true" || have_docker="false"
 # absolute path to project from relative location of this script
 workdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." &> /dev/null && pwd )"
 # defaults if not provided via env
-GOLANG_VERSION="${GOLANG_VERSION:-1.18}"
+GOLANG_VERSION="${GOLANG_VERSION:-1.21}"
 DOCKER_ORG="${DOCKER_ORG:-zencash}"
 IMAGE_NAME="${IMAGE_NAME:-sc-ci-base}"
 IMAGE_TAG="${IMAGE_TAG:-bionic_jdk-11_latest}"

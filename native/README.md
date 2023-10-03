@@ -15,7 +15,7 @@ To build Linux and Windows binaries manually see the following sections.
 
 ### Prerequisites
 
-- `go` version 1.18 or newer
+- `go` version 1.21 or newer
 - `gcc` GNU compiler
 - `gcc-mingw-w64-x86-64` for cross-compilation to Windows
 - `solc` Solidity compiler version 0.8.18 or newer
@@ -28,7 +28,7 @@ The project can be build with the standard Go tooling:
 go build -buildmode c-shared -o bin/linux-x86-64/libevm.so
 ```
 
-As defined in the file `go.mod`, the required minimum version of Go is `1.18`.
+As defined in the file `go.mod`, the required minimum version of Go is `1.21`.
 
 ### Cross compile for Windows
 

@@ -2,7 +2,7 @@ FROM bitnami/minideb:buster
 LABEL os=windows
 LABEL arch=amd64
 
-ENV GOVERSION="1.18.5"
+ENV GOVERSION="1.21"
 ENV GOOS=windows
 ENV GOARCH=amd64
 ENV GOPATH=/go
