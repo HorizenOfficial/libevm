@@ -52,9 +52,6 @@ func (p *Invocation) setDefaults() {
 	if p.Value == nil {
 		p.Value = (*hexutil.Big)(common.Big0)
 	}
-	if p.Gas == 0 {
-		p.Gas = (hexutil.Uint64)(math.MaxInt64)
-	}
 }
 
 // setDefaults for parameters that were omitted
