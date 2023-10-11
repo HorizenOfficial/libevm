@@ -3,7 +3,7 @@ package interop
 import (
 	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/HorizenOfficial/go-ethereum/log"
 	"reflect"
 	"strings"
 )

@@ -6,14 +6,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/eth/tracers"
-	"github.com/ethereum/go-ethereum/eth/tracers/logger"
+	"github.com/HorizenOfficial/go-ethereum/common"
+	"github.com/HorizenOfficial/go-ethereum/common/hexutil"
+	"github.com/HorizenOfficial/go-ethereum/core/vm"
+	"github.com/HorizenOfficial/go-ethereum/eth/tracers"
+	"github.com/HorizenOfficial/go-ethereum/eth/tracers/logger"
 
 	// Force-load the tracer engines to trigger registration
-	_ "github.com/ethereum/go-ethereum/eth/tracers/native"
+	_ "github.com/HorizenOfficial/go-ethereum/eth/tracers/native"
 )
 
 type TracerCreateParams struct {

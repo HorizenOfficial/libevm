@@ -8,7 +8,7 @@ package main
 import "C"
 import (
 	"fmt"
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/HorizenOfficial/go-ethereum/log"
 	"libevm/interop"
 	"libevm/lib"
 	"unsafe"

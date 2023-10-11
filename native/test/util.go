@@ -1,7 +1,7 @@
 package test
 
 import (
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/HorizenOfficial/go-ethereum/common"
 	"math/rand"
 )
 

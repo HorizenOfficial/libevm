@@ -2,8 +2,8 @@ package lib
 
 import (
 	"fmt"
-	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/eth/tracers"
+	"github.com/HorizenOfficial/go-ethereum/core/state"
+	"github.com/HorizenOfficial/go-ethereum/eth/tracers"
 	"libevm/interop"
 	"strconv"
 )

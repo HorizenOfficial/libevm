@@ -3,7 +3,7 @@ package test
 import (
 	"embed"
 	"fmt"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/HorizenOfficial/go-ethereum/common"
 	"math/big"
 	"strings"
 )
