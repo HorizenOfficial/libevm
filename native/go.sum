@@ -1,5 +1,7 @@
 github.com/HorizenOfficial/go-ethereum v0.9.0 h1:VZRUNOmnPXdSCyTJS54R2jQCsbWF+KYbUb7Wde/YsuU=
 github.com/HorizenOfficial/go-ethereum v0.9.0/go.mod h1:ZOt+YkuliwmlkDzzEnU6TsilsB6lM0wgcOsikfakoXc=
+github.com/HorizenOfficial/go-ethereum v1.0.0-snapshot1 h1:riCBI9u/6ibjTcgwAJwMB1ALeUXAzpSzIOC6QuE+TCo=
+github.com/HorizenOfficial/go-ethereum v1.0.0-snapshot1/go.mod h1:ZOt+YkuliwmlkDzzEnU6TsilsB6lM0wgcOsikfakoXc=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6 h1:fLjPD/aNc3UIOA6tDi6QXUemppXK3P9BI7mr2hd6gx8=
 github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6/go.mod h1:3eOhrUMpNV+6aFIbp5/iudMxNCF27Vw2OZgy4xEx0Fg=
