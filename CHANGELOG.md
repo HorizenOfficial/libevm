@@ -1,8 +1,15 @@
 # Changelog
 
+## 1.0.0-SNAPSHOT
+
+- Changed go version to 1.21
+- Support for interoperability between EVM and native smart contracts
+
+Based on HorizenOfficial/go-ethereum `v1.0.0`
+
 ## 0.1.0
 
-Provides standlone access to go-ethereum features:
+Provides standalone access to go-ethereum features:
 - `StateDB` with underlying database:
   - `MemoryDatabase`
   - `LevelDBDatabase`
