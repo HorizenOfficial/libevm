@@ -19,7 +19,7 @@ env:
     - IMAGE_NAME=sc-ci-base
     # Separate branches by space
     - PROD_RELEASE_BRANCHES='main'
-    - GOLANG_VERSION=1.18
+    - GOLANG_VERSION=1.21
 
 script:
   - source ci/setup_env.sh
