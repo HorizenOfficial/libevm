@@ -15,7 +15,7 @@ func Serialize(input any) (string, error) {
 
 func Deserialize(input string, result any) error {
 	dec := json.NewDecoder(bytes.NewReader([]byte(input)))
-	// make sure to throw errors incase unknown fields are passed, do not silently ignore this
+	// make sure to throw errors in case unknown fields are passed, do not silently ignore this
 	// as it is most likely a sign of buggy interface code
 	dec.DisallowUnknownFields()
 	return dec.Decode(result)
