@@ -72,7 +72,7 @@ public class EvmTest extends LibEvmTestBase {
                 // use a tracer for the next call to verify it is used
                 try (var tracer = new Tracer(new TraceOptions())) {
                     var context = new EvmContext();
-                    context.tracer = tracer;
+                    context.setTracer(tracer);
                     // call "retrieve" on the contract to fetch the value we just set
                     result = Evm.Apply(statedb, call(addr2, contractAddress, null, funcRetrieve), context);
                     assertEquals("", result.executionError);
@@ -133,9 +133,18 @@ public class EvmTest extends LibEvmTestBase {
             var contractAddress = createResult.contractAddress;
 
             // setup context
-            var context = new EvmContext();
-            context.blockNumber = height;
-            context.blockHashCallback = blockHashGetterA;
+            var context = new EvmContext(BigInteger.ZERO,
+                    Address.ZERO,
+                    BigInteger.ZERO,
+                    BigInteger.ZERO,
+                    height,
+                    BigInteger.ZERO,
+                    BigInteger.ZERO,
+                    Hash.ZERO) {
+            };
+
+            //context.blockNumber = height;
+            context.setBlockHashCallback(blockHashGetterA);
 
             // throw if B is called
             blockHashGetterA.disable();
@@ -147,7 +156,7 @@ public class EvmTest extends LibEvmTestBase {
             assertEquals("unexpected block hash", blockHash, new Hash(resultA.returnData));
 
             // throw if A is called
-            context.blockHashCallback = blockHashGetterB;
+            context.setBlockHashCallback(blockHashGetterB);
             blockHashGetterA.enable();
             blockHashGetterB.disable();
 
@@ -205,9 +214,9 @@ public class EvmTest extends LibEvmTestBase {
             try (var nativeContractCallback = new NativeContractCallback()) {
                 // setup context
                 var context = new EvmContext();
-                context.externalContracts = new Address[] {forgerStakesContractAddress};
-                context.externalCallback = nativeContractCallback;
-                context.initialDepth = 20;
+                context.setExternalContracts(new Address[] {forgerStakesContractAddress});
+                context.setExternalCallback(nativeContractCallback);
+                context.setInitialDepth(20);
 
                 // call GetForgerStakes() function on the contract
                 var callResult = Evm.Apply(
