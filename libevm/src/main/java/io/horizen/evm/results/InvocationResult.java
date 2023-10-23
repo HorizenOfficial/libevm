@@ -1,6 +1,7 @@
-package io.horizen.evm;
+package io.horizen.evm.results;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.horizen.evm.Address;
 
 import java.math.BigInteger;
 import java.util.Objects;

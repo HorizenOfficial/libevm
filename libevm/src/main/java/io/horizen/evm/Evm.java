@@ -1,6 +1,7 @@
 package io.horizen.evm;
 
 import io.horizen.evm.params.EvmParams;
+import io.horizen.evm.results.InvocationResult;
 
 public final class Evm {
     private Evm() { }

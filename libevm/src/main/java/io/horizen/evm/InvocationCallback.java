@@ -1,5 +1,6 @@
 package io.horizen.evm;
 
+import io.horizen.evm.results.InvocationResult;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

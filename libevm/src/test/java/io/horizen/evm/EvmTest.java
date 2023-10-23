@@ -1,5 +1,6 @@
 package io.horizen.evm;
 
+import io.horizen.evm.results.InvocationResult;
 import org.junit.Test;
 
 import java.math.BigInteger;
