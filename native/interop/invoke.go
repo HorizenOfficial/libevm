@@ -1,11 +1,9 @@
 package interop
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/HorizenOfficial/go-ethereum/log"
 	"reflect"
 	"strings"
 )
@@ -18,7 +16,7 @@ var (
 	ErrInvocationError  = errors.New("invocation error")
 )
 
-func Invoke(target interface{}, method string, args string) string {
+func Invoke(target any, method string, args string) string {
 	log.Trace(">> invoke", "method", method, "args", args)
 	result := toJsonResponse(callMethod(target, method, args))
 	log.Trace("<< response", "result", result)
@@ -32,7 +30,7 @@ func Invoke(target interface{}, method string, args string) string {
 // 3. have at most two return values
 // 4. if there is one return value it must be either an error type or a return value that can be marshalled to json
 // 5. if there are two return values the first one must be an error type and the second must be a return value that can be marshalled to json
-func callMethod(target interface{}, method string, args string) (error, interface{}) {
+func callMethod(target any, method string, args string) (error, any) {
 	// cleanup whitespace from args
 	args = strings.TrimSpace(args)
 	// find the target function
@@ -62,12 +60,8 @@ func callMethod(target interface{}, method string, args string) (error, interfac
 			return fmt.Errorf("%w: null args is not allowed", ErrInvalidArguments), nil
 		}
 		// unmarshal args to the type of the one parameter of the function
-		dec := json.NewDecoder(bytes.NewReader([]byte(args)))
-		// make sure to throw errors incase unknown fields are passed, do not silently ignore this
-		// as it is most likely a sign of buggy interface code
-		dec.DisallowUnknownFields()
 		argsInstance := reflect.New(funType.In(0))
-		err := dec.Decode(argsInstance.Interface())
+		err := Deserialize(args, argsInstance.Interface())
 		if err != nil {
 			return fmt.Errorf("%w: %v", ErrInvalidArguments, err), nil
 		}
@@ -106,20 +100,20 @@ func callMethod(target interface{}, method string, args string) (error, interfac
 	return nil, nil
 }
 
-func toJsonResponse(err error, result interface{}) string {
+func toJsonResponse(err error, result any) string {
 	var res struct {
-		Error  string      `json:"error"`
-		Result interface{} `json:"result"`
+		Error  string `json:"error"`
+		Result any    `json:"result"`
 	}
 	if err != nil {
 		res.Error = err.Error()
 	} else {
 		res.Result = result
 	}
-	jsonBytes, marshalErr := json.Marshal(res)
+	response, marshalErr := Serialize(res)
 	if marshalErr != nil {
 		log.Error("unable to marshal response", "marshalErr", marshalErr, "response", res)
 		return ""
 	}
-	return string(jsonBytes)
+	return response
 }

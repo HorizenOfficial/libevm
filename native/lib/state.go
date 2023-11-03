@@ -1,12 +1,12 @@
 package lib
 
 import (
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/HorizenOfficial/go-ethereum/common"
+	"github.com/HorizenOfficial/go-ethereum/common/hexutil"
+	"github.com/HorizenOfficial/go-ethereum/core/state"
+	"github.com/HorizenOfficial/go-ethereum/core/vm"
+	"github.com/HorizenOfficial/go-ethereum/crypto"
+	"github.com/HorizenOfficial/go-ethereum/log"
 )
 
 var emptyCodeHash = crypto.Keccak256Hash(nil)

@@ -1,7 +1,7 @@
 package lib
 
 import (
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/HorizenOfficial/go-ethereum/common/hexutil"
 )
 
 type RefundParams struct {

@@ -3,7 +3,7 @@ package lib
 import (
 	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/HorizenOfficial/go-ethereum/common"
 	"libevm/lib/geth_internal"
 )
 

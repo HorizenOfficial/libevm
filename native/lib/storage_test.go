@@ -2,8 +2,8 @@ package lib
 
 import (
 	"bytes"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/HorizenOfficial/go-ethereum/common"
+	"github.com/HorizenOfficial/go-ethereum/crypto"
 	"testing"
 )
 
@@ -111,7 +111,7 @@ func TestStateStorage(t *testing.T) {
 			common.HexToHash("572f59c7e67c4e1733b2a349db3fc3f50e7b6d2d2b08419957937678d647b40a47"),
 		}
 	)
-	dbHandle := instance.OpenMemoryDB()
+	dbHandle := instance.DatabaseOpenMemoryDB()
 	for _, value := range values {
 		testStorageSetCommitWrite(t, instance, dbHandle, addr, key, value)
 	}

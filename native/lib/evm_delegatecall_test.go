@@ -1,14 +1,14 @@
 package lib
 
 import (
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/HorizenOfficial/go-ethereum/common"
+	"github.com/HorizenOfficial/go-ethereum/common/hexutil"
 	"libevm/test"
 	"math/big"
 	"testing"
 )
 
-func TestInvokeDelegatecall(t *testing.T) {
+func TestEvmDelegatecall(t *testing.T) {
 	var (
 		instance   = New()
 		user       = common.HexToAddress("0xbafe3b6f2a19658df3cb5efca158c93272ff5c0b")
@@ -18,7 +18,7 @@ func TestInvokeDelegatecall(t *testing.T) {
 	)
 
 	//=====SETUP=====
-	_, dbHandle := instance.OpenLevelDB(LevelDBParams{Path: t.TempDir()})
+	_, dbHandle := instance.DatabaseOpenLevelDB(LevelDBParams{Path: t.TempDir()})
 	_, handle := instance.StateOpen(StateParams{
 		DatabaseParams: DatabaseParams{DatabaseHandle: dbHandle},
 		Root:           emptyHash,
@@ -42,14 +42,15 @@ func TestInvokeDelegatecall(t *testing.T) {
 	//=====CONTRACTS DEPLOY=====
 	_, deployReceiverResult := instance.EvmApply(EvmParams{
 		HandleParams: HandleParams{Handle: handle},
-		From:         user,
-		To:           nil,
-		Input:        test.DelegateReceiver.Deploy(),
-		AvailableGas: 200000,
-		GasPrice:     (*hexutil.Big)(big.NewInt(1000000000)),
+		Invocation: Invocation{
+			Caller: user,
+			Callee: nil,
+			Input:  test.DelegateReceiver.Deploy(),
+			Gas:    200000,
+		},
 	})
-	if deployReceiverResult.EvmError != "" {
-		t.Fatalf("vm error: %v", deployReceiverResult.EvmError)
+	if deployReceiverResult.ExecutionError != "" {
+		t.Fatalf("vm error: %v", deployReceiverResult.ExecutionError)
 	}
 	_, getReceiverCode := instance.StateGetCode(AccountParams{
 		HandleParams: HandleParams{Handle: handle},
@@ -67,14 +68,15 @@ func TestInvokeDelegatecall(t *testing.T) {
 	})
 	_, deployCallerResult := instance.EvmApply(EvmParams{
 		HandleParams: HandleParams{Handle: handle},
-		From:         user,
-		To:           nil,
-		Input:        test.DelegateCaller.Deploy(),
-		AvailableGas: 200000,
-		GasPrice:     (*hexutil.Big)(big.NewInt(1000000000)),
+		Invocation: Invocation{
+			Caller: user,
+			Callee: nil,
+			Input:  test.DelegateCaller.Deploy(),
+			Gas:    200000,
+		},
 	})
-	if deployCallerResult.EvmError != "" {
-		t.Fatalf("vm error: %v", deployCallerResult.EvmError)
+	if deployCallerResult.ExecutionError != "" {
+		t.Fatalf("vm error: %v", deployCallerResult.ExecutionError)
 	}
 	_, getCallerCode := instance.StateGetCode(AccountParams{
 		HandleParams: HandleParams{Handle: handle},
@@ -88,23 +90,25 @@ func TestInvokeDelegatecall(t *testing.T) {
 	//store value
 	_, _ = instance.EvmApply(EvmParams{
 		HandleParams: HandleParams{Handle: handle},
-		From:         user,
-		To:           deployReceiverResult.ContractAddress,
-		Input:        test.DelegateReceiver.Store(test1Value),
-		AvailableGas: 200000,
-		GasPrice:     (*hexutil.Big)(big.NewInt(1000000000)),
+		Invocation: Invocation{
+			Caller: user,
+			Callee: deployReceiverResult.ContractAddress,
+			Input:  test.DelegateReceiver.Store(test1Value),
+			Gas:    200000,
+		},
 	})
 	//retrieve value
 	_, receiverTestResult := instance.EvmApply(EvmParams{
 		HandleParams: HandleParams{Handle: handle},
-		From:         user,
-		To:           deployReceiverResult.ContractAddress,
-		Input:        test.DelegateReceiver.Retrieve(),
-		AvailableGas: 200000,
-		GasPrice:     (*hexutil.Big)(big.NewInt(1000000000)),
+		Invocation: Invocation{
+			Caller: user,
+			Callee: deployReceiverResult.ContractAddress,
+			Input:  test.DelegateReceiver.Retrieve(),
+			Gas:    200000,
+		},
 	})
-	if receiverTestResult.EvmError != "" {
-		t.Fatalf("vm error: %v", receiverTestResult.EvmError)
+	if receiverTestResult.ExecutionError != "" {
+		t.Fatalf("vm error: %v", receiverTestResult.ExecutionError)
 	}
 	receiverTestValue := common.BytesToHash(receiverTestResult.ReturnData).Big()
 	if test1Value.Cmp(receiverTestValue) != 0 {
@@ -115,29 +119,25 @@ func TestInvokeDelegatecall(t *testing.T) {
 	//store value
 	_, _ = instance.EvmApply(EvmParams{
 		HandleParams: HandleParams{Handle: handle},
-		From:         user,
-		To:           deployCallerResult.ContractAddress,
-		Input:        test.DelegateCaller.Store(deployReceiverResult.ContractAddress, test2Value),
-		AvailableGas: 200000,
-		GasPrice:     (*hexutil.Big)(big.NewInt(1000000000)),
-		TraceOptions: &TraceOptions{
-			EnableMemory:     true,
-			DisableStack:     false,
-			DisableStorage:   false,
-			EnableReturnData: true,
+		Invocation: Invocation{
+			Caller: user,
+			Callee: deployCallerResult.ContractAddress,
+			Input:  test.DelegateCaller.Store(deployReceiverResult.ContractAddress, test2Value),
+			Gas:    200000,
 		},
 	})
 	//retrieve value
 	_, callerTestResult := instance.EvmApply(EvmParams{
 		HandleParams: HandleParams{Handle: handle},
-		From:         user,
-		To:           deployCallerResult.ContractAddress,
-		Input:        test.DelegateCaller.Retrieve(),
-		AvailableGas: 200000,
-		GasPrice:     (*hexutil.Big)(big.NewInt(1000000000)),
+		Invocation: Invocation{
+			Caller: user,
+			Callee: deployCallerResult.ContractAddress,
+			Input:  test.DelegateCaller.Retrieve(),
+			Gas:    200000,
+		},
 	})
-	if callerTestResult.EvmError != "" {
-		t.Fatalf("vm error: %v", callerTestResult.EvmError)
+	if callerTestResult.ExecutionError != "" {
+		t.Fatalf("vm error: %v", callerTestResult.ExecutionError)
 	}
 	callerTestValue := common.BytesToHash(callerTestResult.ReturnData).Big()
 	if test2Value.Cmp(callerTestValue) != 0 {
@@ -153,5 +153,5 @@ func TestInvokeDelegatecall(t *testing.T) {
 		t.Fatalf("nonce was modified: expected 2, actual %v", nonce)
 	}
 	// cleanup
-	_ = instance.CloseDatabase(DatabaseParams{DatabaseHandle: dbHandle})
+	_ = instance.DatabaseClose(DatabaseParams{DatabaseHandle: dbHandle})
 }

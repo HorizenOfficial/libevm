@@ -2,11 +2,11 @@ package lib
 
 import (
 	"bytes"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/HorizenOfficial/go-ethereum/common"
+	"github.com/HorizenOfficial/go-ethereum/common/hexutil"
+	"github.com/HorizenOfficial/go-ethereum/core/state"
+	"github.com/HorizenOfficial/go-ethereum/core/vm"
+	"github.com/HorizenOfficial/go-ethereum/crypto"
 	"libevm/test"
 	"math/big"
 	"math/rand"
@@ -20,7 +20,7 @@ func TestRawStateDB(t *testing.T) {
 		key      = common.BytesToHash(crypto.Keccak256(common.FromHex("00112233")))
 		value    = common.HexToHash("0x1234")
 	)
-	dbHandle := instance.OpenMemoryDB()
+	dbHandle := instance.DatabaseOpenMemoryDB()
 	_, db := instance.databases.Get(dbHandle)
 	statedb, _ := state.New(test.ZeroHash, db.database, nil)
 	// set a non-empty value to the account to make sure it exists and is not "empty"

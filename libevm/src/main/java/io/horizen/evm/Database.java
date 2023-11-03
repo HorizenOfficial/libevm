@@ -8,7 +8,7 @@ public abstract class Database extends ResourceHandle {
     }
 
     @Override
-    public void close() throws Exception {
-        LibEvm.invoke("CloseDatabase", new DatabaseParams(handle));
+    public void close() {
+        LibEvm.invoke("DatabaseClose", new DatabaseParams(handle));
     }
 }

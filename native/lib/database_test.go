@@ -2,12 +2,12 @@ package lib
 
 import (
 	"crypto/ecdsa"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core/rawdb"
-	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/trie"
+	"github.com/HorizenOfficial/go-ethereum/common"
+	"github.com/HorizenOfficial/go-ethereum/common/hexutil"
+	"github.com/HorizenOfficial/go-ethereum/core/rawdb"
+	"github.com/HorizenOfficial/go-ethereum/core/state"
+	"github.com/HorizenOfficial/go-ethereum/crypto"
+	"github.com/HorizenOfficial/go-ethereum/trie"
 	"math/big"
 	"testing"
 )
@@ -97,7 +97,7 @@ func TestService_OpenLevelDB(t *testing.T) {
 		previous := big.NewInt(int64(i - 1))
 		next := big.NewInt(int64(i))
 		// open database
-		err, dbHandle := instance.OpenLevelDB(LevelDBParams{Path: dbPath})
+		err, dbHandle := instance.DatabaseOpenLevelDB(LevelDBParams{Path: dbPath})
 		if err != nil {
 			t.Fatalf("failed to open database: %v", err)
 		}
@@ -135,7 +135,7 @@ func TestService_OpenLevelDB(t *testing.T) {
 			t.Fatalf("failed to commit state: %v", err)
 		}
 		instance.StateClose(HandleParams{Handle: stateHandle})
-		err = instance.CloseDatabase(DatabaseParams{DatabaseHandle: dbHandle})
+		err = instance.DatabaseClose(DatabaseParams{DatabaseHandle: dbHandle})
 		if err != nil {
 			t.Fatalf("failed to close database: %v", err)
 		}

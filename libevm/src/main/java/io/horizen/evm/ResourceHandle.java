@@ -1,9 +1,12 @@
 package io.horizen.evm;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public abstract class ResourceHandle implements AutoCloseable {
     /**
      * Handle to a native resource that requires manual release.
      */
+    @JsonValue
     final int handle;
 
     public ResourceHandle(int handle) {

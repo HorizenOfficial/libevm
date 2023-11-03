@@ -133,7 +133,7 @@ final class LibEvm {
             } catch (Exception e) {
                 // note: make sure we do not throw any exception here because this callback is called by native code
                 // for diagnostics we log the exception here
-                logger.warn("error while handling callback from libevm", e);
+                logger.warn("error while handling callback", e);
             }
             return null;
         }

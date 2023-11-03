@@ -1,8 +1,8 @@
 module libevm
 
-go 1.18
+go 1.21
 
-require github.com/ethereum/go-ethereum v1.10.26
+require github.com/HorizenOfficial/go-ethereum v1.0.0-snapshot3
 
 require (
 	github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6 // indirect
