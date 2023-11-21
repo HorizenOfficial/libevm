@@ -1,6 +1,6 @@
 # libevm
 
-libevm implements a shared library to access a standalone instance of the go-ethereum EVM and its state storage layer StateDB and underlying LevelDB.
+libevm implements a shared library to access a standalone instance of the Horizen Go-ethereum EVM and its state storage layer StateDB and underlying LevelDB.
 
 For simplicity all exported library functions take one parameter and return one value, which are all typed as C-strings and contain JSON.
 
@@ -15,7 +15,7 @@ To build Linux and Windows binaries manually see the following sections.
 
 ### Prerequisites
 
-- `go` version 1.18 or newer
+- `go` version 1.21 or newer
 - `gcc` GNU compiler
 - `gcc-mingw-w64-x86-64` for cross-compilation to Windows
 - `solc` Solidity compiler version 0.8.18 or newer
