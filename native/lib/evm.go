@@ -1,86 +1,66 @@
 package lib
 
 import (
-	"encoding/json"
-	"fmt"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/eth/tracers"
-	"github.com/ethereum/go-ethereum/eth/tracers/logger"
-	"github.com/ethereum/go-ethereum/params"
 	"math"
 	"math/big"
 	"time"
 
-	// Force-load the tracer engines to trigger registration
-	_ "github.com/ethereum/go-ethereum/eth/tracers/native"
+	"github.com/HorizenOfficial/go-ethereum/common"
+	"github.com/HorizenOfficial/go-ethereum/common/hexutil"
+	"github.com/HorizenOfficial/go-ethereum/core"
+	"github.com/HorizenOfficial/go-ethereum/core/state"
+	"github.com/HorizenOfficial/go-ethereum/core/vm"
+	"github.com/HorizenOfficial/go-ethereum/eth/tracers"
+	"github.com/HorizenOfficial/go-ethereum/params"
 )
 
-type EvmParams struct {
-	HandleParams
-	From         common.Address  `json:"from"`
-	To           *common.Address `json:"to"`
-	Value        *hexutil.Big    `json:"value"`
-	Input        []byte          `json:"input"`
-	AvailableGas hexutil.Uint64  `json:"availableGas"`
-	GasPrice     *hexutil.Big    `json:"gasPrice"`
-	Context      EvmContext      `json:"context"`
-	TraceOptions *TraceOptions   `json:"traceOptions"`
+type Invocation struct {
+	Caller   common.Address  `json:"caller"`
+	Callee   *common.Address `json:"callee"`
+	Value    *hexutil.Big    `json:"value"`
+	Input    []byte          `json:"input"`
+	Gas      hexutil.Uint64  `json:"gas"`
+	ReadOnly bool            `json:"readOnly"`
 }
 
-type BlockHashCallback struct{ Callback }
-
-func (c *BlockHashCallback) getBlockHash(blockNumber uint64) common.Hash {
-	blockNumberBig := new(big.Int).SetUint64(blockNumber)
-	if c == nil {
-		// fallback to mocked block hash
-		return common.BytesToHash(crypto.Keccak256([]byte(blockNumberBig.String())))
-	}
-	blockNumberHex := (*hexutil.Big)(blockNumberBig).String()
-	return common.HexToHash(c.Invoke(blockNumberHex))
+type InvocationResult struct {
+	ReturnData      []byte          `json:"returnData"`
+	LeftOverGas     hexutil.Uint64  `json:"leftOverGas"`
+	ExecutionError  string          `json:"executionError"`
+	Reverted        bool            `json:"reverted"`
+	ContractAddress *common.Address `json:"contractAddress"`
 }
 
 type EvmContext struct {
-	ChainID           hexutil.Uint64     `json:"chainID"`
-	Coinbase          common.Address     `json:"coinbase"`
-	GasLimit          hexutil.Uint64     `json:"gasLimit"`
-	BlockNumber       *hexutil.Big       `json:"blockNumber"`
-	Time              *hexutil.Big       `json:"time"`
-	BaseFee           *hexutil.Big       `json:"baseFee"`
-	Random            common.Hash        `json:"random"`
-	BlockHashCallback *BlockHashCallback `json:"blockHashCallback"`
-}
-
-type TraceOptions struct {
-	EnableMemory     bool            `json:"enableMemory"`
-	DisableStack     bool            `json:"disableStack"`
-	DisableStorage   bool            `json:"disableStorage"`
-	EnableReturnData bool            `json:"enableReturnData"`
-	Tracer           string          `json:"tracer"`
-	TracerConfig     json.RawMessage `json:"tracerConfig"`
+	ChainID           hexutil.Uint64      `json:"chainID"`
+	Coinbase          common.Address      `json:"coinbase"`
+	GasLimit          hexutil.Uint64      `json:"gasLimit"`
+	GasPrice          *hexutil.Big        `json:"gasPrice"`
+	BlockNumber       *hexutil.Big        `json:"blockNumber"`
+	Time              *hexutil.Big        `json:"time"`
+	BaseFee           *hexutil.Big        `json:"baseFee"`
+	Random            common.Hash         `json:"random"`
+	BlockHashCallback *BlockHashCallback  `json:"blockHashCallback"`
+	Tracer            *int                `json:"tracer"`
+	ExternalContracts []common.Address    `json:"externalContracts"`
+	ExternalCallback  *InvocationCallback `json:"externalCallback"`
+	InitialDepth      int                 `json:"initialDepth"`
 }
 
 // setDefaults for parameters that were omitted
-func (p *EvmParams) setDefaults() {
+func (p *Invocation) setDefaults() {
 	if p.Value == nil {
 		p.Value = (*hexutil.Big)(common.Big0)
 	}
-	if p.AvailableGas == 0 {
-		p.AvailableGas = (hexutil.Uint64)(math.MaxInt64)
-	}
-	if p.GasPrice == nil {
-		p.GasPrice = (*hexutil.Big)(common.Big0)
-	}
-	p.Context.setDefaults()
 }
 
 // setDefaults for parameters that were omitted
 func (c *EvmContext) setDefaults() {
 	if c.GasLimit == 0 {
 		c.GasLimit = (hexutil.Uint64)(math.MaxInt64)
+	}
+	if c.GasPrice == nil {
+		c.GasPrice = (*hexutil.Big)(common.Big0)
 	}
 	if c.BlockNumber == nil {
 		c.BlockNumber = (*hexutil.Big)(common.Big0)
@@ -127,58 +107,38 @@ func (c *EvmContext) getChainConfig() *params.ChainConfig {
 	}
 }
 
-func (t *TraceOptions) getTracer() (tracers.Tracer, error) {
-	if t == nil {
+// getTracer retrieves an instance of a tracer if a handle is given
+func (c *EvmContext) getTracer(s *Service) (error, tracers.Tracer) {
+	if c.Tracer == nil {
 		return nil, nil
 	}
-	if t.Tracer != "" {
-		tracer, err := tracers.New(t.Tracer, nil, t.TracerConfig)
-		if err != nil {
-			return nil, err
-		}
-		return tracer, nil
-	} else {
-		traceConfig := logger.Config{
-			EnableMemory:     t.EnableMemory,
-			DisableStack:     t.DisableStack,
-			DisableStorage:   t.DisableStorage,
-			EnableReturnData: t.EnableReturnData,
-		}
-		return logger.NewStructLogger(&traceConfig), nil
-	}
-}
-
-type EvmResult struct {
-	UsedGas         hexutil.Uint64  `json:"usedGas"`
-	EvmError        string          `json:"evmError"`
-	ReturnData      []byte          `json:"returnData"`
-	ContractAddress *common.Address `json:"contractAddress"`
-	Reverted        bool            `json:"reverted"`
-	TracerResult    json.RawMessage `json:"tracerResult,omitempty"`
-}
-
-func (s *Service) EvmApply(params EvmParams) (error, *EvmResult) {
-	err, statedb := s.statedbs.Get(params.Handle)
+	err, tracerPtr := s.tracers.Get(*c.Tracer)
 	if err != nil {
 		return err, nil
 	}
+	return nil, *tracerPtr
+}
 
-	// apply defaults to missing parameters
-	params.setDefaults()
+type EvmParams struct {
+	HandleParams
+	Invocation Invocation `json:"invocation"`
+	Context    EvmContext `json:"context"`
+}
 
-	// create tracer if requested
-	tracer, err := params.TraceOptions.getTracer()
+func (s *Service) getEvm(context EvmContext, stateDB *state.StateDB, origin common.Address) (error, *vm.EVM) {
+	// get tracer if a handle is given
+	err, tracer := context.getTracer(s)
 	if err != nil {
 		return err, nil
 	}
 
 	var (
 		txContext = vm.TxContext{
-			Origin:   params.From,
-			GasPrice: params.GasPrice.ToInt(),
+			Origin:   origin,
+			GasPrice: context.GasPrice.ToInt(),
 		}
-		blockContext = params.Context.getBlockContext()
-		chainConfig  = params.Context.getChainConfig()
+		blockContext = context.getBlockContext()
+		chainConfig  = context.getChainConfig()
 		evmConfig    = vm.Config{
 			Debug:                   tracer != nil,
 			Tracer:                  tracer,
@@ -186,11 +146,34 @@ func (s *Service) EvmApply(params EvmParams) (error, *EvmResult) {
 			EnablePreimageRecording: false,
 			JumpTable:               nil,
 			ExtraEips:               nil,
+			InitialDepth:            context.InitialDepth,
+			ExternalContracts:       context.ExternalContracts,
+			ExternalCallback:        context.ExternalCallback.execute,
 		}
-		evm              = vm.NewEVM(blockContext, txContext, statedb, chainConfig, evmConfig)
-		sender           = vm.AccountRef(params.From)
-		gas              = uint64(params.AvailableGas)
-		contractCreation = params.To == nil
+	)
+	return nil, vm.NewEVM(blockContext, txContext, stateDB, chainConfig, evmConfig)
+}
+
+func (s *Service) EvmApply(params EvmParams) (error, *InvocationResult) {
+	// apply defaults to missing parameters
+	params.Invocation.setDefaults()
+	params.Context.setDefaults()
+
+	err, statedb := s.statedbs.Get(params.Handle)
+	if err != nil {
+		return err, nil
+	}
+
+	err, evm := s.getEvm(params.Context, statedb, params.Invocation.Caller)
+	if err != nil {
+		return err, nil
+	}
+
+	var (
+		invocation       = params.Invocation
+		sender           = vm.AccountRef(invocation.Caller)
+		gas              = uint64(invocation.Gas)
+		contractCreation = invocation.Callee == nil
 	)
 
 	var (
@@ -217,20 +200,28 @@ func (s *Service) EvmApply(params EvmParams) (error, *EvmResult) {
 		// - The EVM.create call can fail before it even reaches the point of incrementing the nonce. We have to make
 		//   sure to NOT decrement the nonce in that case. Hence, setting the nonce to the value before the EVM call in
 		//   case it was modified.
-		nonce := statedb.GetNonce(params.From)
-		if nonce > 0 {
-			statedb.SetNonce(params.From, nonce-1)
+		// This applies only to top level calls. It may happen that a contract creation is requested by a native smart contract.
+		// In this case the nonce of the native smart contract is not incremented before this call, so it is not necessary to
+		// decrement it before calling evm.Create.
+
+		nonce := statedb.GetNonce(invocation.Caller)
+		if nonce > 0 && params.Context.InitialDepth == 0 {
+			statedb.SetNonce(invocation.Caller, nonce-1)
 		}
 		// we ignore returnData here because it holds the contract code that was just deployed
 		var deployedContractAddress common.Address
-		_, deployedContractAddress, gas, vmerr = evm.Create(sender, params.Input, gas, params.Value.ToInt())
+		_, deployedContractAddress, gas, vmerr = evm.Create(sender, invocation.Input, gas, invocation.Value.ToInt())
 		contractAddress = &deployedContractAddress
 		// if there is an error evm.Create might not have incremented the nonce as expected,
-		if statedb.GetNonce(params.From) != nonce {
-			statedb.SetNonce(params.From, nonce)
+		if statedb.GetNonce(invocation.Caller) != nonce && params.Context.InitialDepth == 0 {
+			statedb.SetNonce(invocation.Caller, nonce)
 		}
 	} else {
-		returnData, gas, vmerr = evm.Call(sender, *params.To, params.Input, gas, params.Value.ToInt())
+		if invocation.ReadOnly {
+			returnData, gas, vmerr = evm.StaticCall(sender, *invocation.Callee, invocation.Input, gas)
+		} else {
+			returnData, gas, vmerr = evm.Call(sender, *invocation.Callee, invocation.Input, gas, invocation.Value.ToInt())
+		}
 	}
 
 	// no error means successful transaction, otherwise failure
@@ -244,22 +235,11 @@ func (s *Service) EvmApply(params EvmParams) (error, *EvmResult) {
 		returnData = make([]byte, 0)
 	}
 
-	result := EvmResult{
-		UsedGas:         params.AvailableGas - hexutil.Uint64(gas),
-		EvmError:        evmError,
+	return nil, &InvocationResult{
 		ReturnData:      returnData,
-		ContractAddress: contractAddress,
+		LeftOverGas:     hexutil.Uint64(gas),
+		ExecutionError:  evmError,
 		Reverted:        vmerr == vm.ErrExecutionReverted,
+		ContractAddress: contractAddress,
 	}
-
-	// add trace results if enabled
-	if tracer != nil {
-		traceResultJson, traceErr := tracer.GetResult()
-		if traceErr != nil {
-			return fmt.Errorf("trace error: %v", traceErr), nil
-		}
-		result.TracerResult = traceResultJson
-	}
-
-	return nil, &result
 }

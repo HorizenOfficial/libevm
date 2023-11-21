@@ -9,7 +9,7 @@ public class LevelDBDatabase extends Database {
      * @param path data directory to pass to levelDB
      */
     public LevelDBDatabase(String path) {
-        super(LibEvm.invoke("OpenLevelDB", new LevelDBParams(path), int.class));
+        super(LibEvm.invoke("DatabaseOpenLevelDB", new LevelDBParams(path), int.class));
     }
 
     @Override

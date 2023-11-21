@@ -3,7 +3,7 @@ package test
 import (
 	"embed"
 	"fmt"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/HorizenOfficial/go-ethereum/common"
 	"math/big"
 	"strings"
 )
@@ -12,16 +12,18 @@ import (
 // note: other interesting parameters for the solidity compiler include:
 // --opcodes to get the compiled code in a "readable" opcode format
 // --storage-layout to get the storage layout of the contract
-//go:generate solc --bin --bin-runtime --hashes --optimize --evm-version paris -o compiled --overwrite Storage.sol OpCodes.sol DelegateCaller.sol DelegateReceiver.sol
+//go:generate solc --bin --bin-runtime --hashes --optimize --evm-version paris -o compiled --overwrite Storage.sol OpCodes.sol DelegateCaller.sol DelegateReceiver.sol NativeInterop.sol BaseNativeInterface.sol NativeCaller.sol
 //go:embed compiled
 var compiled embed.FS
 
 // load contracts from embedded compiled data
 var (
-	Storage          = StorageContract{newContract("compiled/Storage")}
-	OpCodes          = OpCodesContract{newContract("compiled/OpCodes")}
-	DelegateCaller   = DelegateCallerContract{newContract("compiled/DelegateCaller")}
-	DelegateReceiver = DelegateReceiverContract{newContract("compiled/DelegateReceiver")}
+	Storage                = StorageContract{newContract("compiled/Storage")}
+	OpCodes                = OpCodesContract{newContract("compiled/OpCodes")}
+	DelegateCaller         = DelegateCallerContract{newContract("compiled/DelegateCaller")}
+	DelegateReceiver       = DelegateReceiverContract{newContract("compiled/DelegateReceiver")}
+	NativeInterop          = NativeInteropContract{newContract("compiled/NativeInterop")}
+	ForgerStakes           = ForgerStakesContract{newContract("compiled/ForgerStakes")}
 )
 
 type contract struct {
@@ -108,4 +110,20 @@ func (c *DelegateCallerContract) Store(address *common.Address, value *big.Int) 
 
 func (c *DelegateCallerContract) Retrieve() []byte {
 	return c.findSignature("retrieve")
+}
+
+type NativeInteropContract struct{ *contract }
+
+func (c *NativeInteropContract) GetForgerStakes() []byte {
+	return c.findSignature("GetForgerStakes")
+}
+
+func (c *NativeInteropContract) GetForgerStakesDelegateCall() []byte {
+	return c.findSignature("GetForgerStakesDelegateCall")
+}
+
+type ForgerStakesContract struct{ *contract }
+
+func (c *ForgerStakesContract) GetAllForgersStakes() []byte {
+	return c.findSignature("getAllForgersStakes")
 }

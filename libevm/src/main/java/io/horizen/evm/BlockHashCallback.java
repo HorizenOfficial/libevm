@@ -14,17 +14,14 @@ public abstract class BlockHashCallback extends LibEvmCallback {
     public String invoke(String args) {
         logger.debug("received block hash callback");
         try {
-            if (!args.startsWith("0x")) {
-                logger.warn("received invalid block number: {}", args);
-            } else {
-                var blockNumber = new BigInteger(args.substring(2), 16);
-                return getBlockHash(blockNumber).toString();
-            }
+            var blockNumber = Converter.fromJson(args, BigInteger.class);
+            return Converter.toJson(getBlockHash(blockNumber));
         } catch (Exception e) {
             // note: make sure we do not throw any exception here because this callback is called by native code
             // for diagnostics we log the exception here
-            logger.warn("received invalid block hash collback from libevm", e);
+            logger.warn("received invalid block hash callback", e);
         }
-        return Hash.ZERO.toString();
+        return Converter.toJson(Hash.ZERO);
     }
 }
+

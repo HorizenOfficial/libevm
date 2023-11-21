@@ -1,7 +1,7 @@
 package lib
 
 import (
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/HorizenOfficial/go-ethereum/common"
 	"libevm/test"
 	"math/rand"
 	"reflect"

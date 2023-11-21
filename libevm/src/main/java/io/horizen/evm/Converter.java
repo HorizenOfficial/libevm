@@ -57,6 +57,14 @@ final class Converter {
         }
     }
 
+    public static <T> T fromJson(String json, Class<T> valueType) {
+        try {
+            return mapper.readValue(json, valueType);
+        } catch (IOException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
     // Get byte array from hex string
     public static byte[] fromHexString(String hex) {
         return BaseEncoding.base16().lowerCase().decode(hex.toLowerCase());

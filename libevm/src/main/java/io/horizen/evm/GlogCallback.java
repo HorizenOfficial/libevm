@@ -1,6 +1,5 @@
 package io.horizen.evm;
 
-import com.fasterxml.jackson.databind.type.TypeFactory;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
 
@@ -16,8 +15,7 @@ class GlogCallback extends LibEvmCallback {
     @Override
     public String invoke(String args) {
         try {
-            HashMap<String, Object> data =
-                Converter.fromJson(args, TypeFactory.defaultInstance().constructType(HashMap.class));
+            var data = Converter.fromJson(args, HashMap.class);
             // parse and remove known properties from the map
             var level = glogToLog4jLevel((String) data.remove("lvl"));
             var file = data.remove("file");
@@ -32,7 +30,7 @@ class GlogCallback extends LibEvmCallback {
             // note: make sure we do not throw any exception here because this callback is called by native code
             // for diagnostics we log the exception here, if it is caused by malformed json it will also include
             // the raw json string itself
-            logger.warn("received invalid log message data from libevm", e);
+            logger.warn("received invalid log message data", e);
         }
         return null;
     }

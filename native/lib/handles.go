@@ -23,6 +23,7 @@ func NewHandles[T comparable]() *Handles[T] {
 	}
 }
 
+// Add the given object and return the assigned handle
 func (h *Handles[T]) Add(obj T) int {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
@@ -46,6 +47,7 @@ func (h *Handles[T]) Add(obj T) int {
 	}
 }
 
+// Get the object with the given handle
 func (h *Handles[T]) Get(handle int) (error, T) {
 	h.mutex.RLock()
 	defer h.mutex.RUnlock()
@@ -58,6 +60,7 @@ func (h *Handles[T]) Get(handle int) (error, T) {
 	}
 }
 
+// Remove the object with the given handle
 func (h *Handles[T]) Remove(handle int) {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
