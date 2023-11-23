@@ -33,10 +33,10 @@ func TestGetProof(t *testing.T) {
 	statedb.SetNonce(testAddr, testNonce)
 	statedb.SetBalance(testAddr, testBalance)
 	statedb.SetStorage(testAddr, map[common.Hash]common.Hash{testSlot: testValue})
-	_, _ = statedb.Commit(true)
+	roothash, _ := statedb.Commit(0, true)
 
 	// get proof
-	result, err := GetProof(statedb, testAddr, []string{testSlot.String()})
+	result, err := GetProof(statedb, roothash, testAddr, []string{testSlot.String()})
 	if err != nil {
 		t.Fatal(err)
 	}
