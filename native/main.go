@@ -56,6 +56,7 @@ func logToCallback(r *log.Record) error {
 func init() {
 	// set default log level to trace
 	logger.Verbosity(log.LvlTrace)
+	log.PrintOrigins(true)
 	log.Root().SetHandler(logger)
 	// initialize instance of our service
 	instance = lib.New()
@@ -87,6 +88,7 @@ func Invoke(method *C.char, args *C.char) *C.char {
 }
 
 // CreateBuffer creates a zero-initialized buffer of given size
+//
 //export CreateBuffer
 func CreateBuffer(size C.int) unsafe.Pointer {
 	return C.calloc(C.size_t(size), 1)
