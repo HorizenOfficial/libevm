@@ -47,8 +47,8 @@ public class Tracer extends ResourceHandle {
     }
 
     // Top call frame
-    public void CaptureEnd(byte[] output, BigInteger gasUsed, long duration, String err) {
-        LibEvm.invoke("TracerCaptureEnd", new TracerEndParams(handle, output, gasUsed, duration, err));
+    public void CaptureEnd(byte[] output, BigInteger gasUsed, String err) {
+        LibEvm.invoke("TracerCaptureEnd", new TracerEndParams(handle, output, gasUsed, err));
     }
 
     // Rest of call frames

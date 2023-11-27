@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/HorizenOfficial/go-ethereum/common"
 	"github.com/HorizenOfficial/go-ethereum/common/hexutil"
@@ -13,6 +12,7 @@ import (
 	"github.com/HorizenOfficial/go-ethereum/eth/tracers/logger"
 
 	// Force-load the tracer engines to trigger registration
+	_ "github.com/HorizenOfficial/go-ethereum/eth/tracers/js"
 	_ "github.com/HorizenOfficial/go-ethereum/eth/tracers/native"
 )
 
@@ -57,10 +57,9 @@ type TracerStartParams struct {
 
 type TracerEndParams struct {
 	TracerParams
-	Output   []byte         `json:"output"`
-	GasUsed  hexutil.Uint64 `json:"gasUsed"`
-	Duration time.Duration  `json:"duration"`
-	Err      string         `json:"err"`
+	Output  []byte         `json:"output"`
+	GasUsed hexutil.Uint64 `json:"gasUsed"`
+	Err     string         `json:"err"`
 }
 
 type TracerEnterParams struct {
@@ -85,7 +84,7 @@ func (t *TracerCreateParams) createTracer() (tracers.Tracer, error) {
 		return nil, nil
 	}
 	if t.Tracer != "" {
-		tracer, err := tracers.New(t.Tracer, nil, t.TracerConfig)
+		tracer, err := tracers.DefaultDirectory.New(t.Tracer, nil, t.TracerConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -190,7 +189,7 @@ func (s *Service) TracerCaptureEnd(params TracerEndParams) error {
 	if params.Err != "" {
 		traceErr = errors.New(params.Err)
 	}
-	tracer.CaptureEnd(params.Output, uint64(params.GasUsed), params.Duration, traceErr)
+	tracer.CaptureEnd(params.Output, uint64(params.GasUsed), traceErr)
 	return nil
 }
 
