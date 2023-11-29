@@ -26,7 +26,7 @@ public class StateDB extends ResourceHandle {
      * @param root root hash
      */
     public StateDB(Database db, Hash root) {
-        super(LibEvm.invoke("StateOpen", new OpenStateParams(db.handle, root), int.class));
+        super(LibEvm.invoke("StateOpen", new OpenStateParams(db.handle, root.equals(Hash.ZERO) ? EMPTY_ROOT_HASH : root), int.class));
     }
 
     /**
