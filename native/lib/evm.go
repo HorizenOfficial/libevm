@@ -81,7 +81,7 @@ func (c *EvmContext) getBlockContext() vm.BlockContext {
 		Coinbase:    c.Coinbase,
 		GasLimit:    uint64(c.GasLimit),
 		BlockNumber: c.BlockNumber.ToInt(),
-		Time:        c.Time.ToInt(),
+		Time:        c.Time.ToInt().Uint64(),
 		Difficulty:  common.Big0,
 		BaseFee:     c.BaseFee.ToInt(),
 		Random:      &c.Random,
@@ -140,11 +140,9 @@ func (s *Service) getEvm(context EvmContext, stateDB *state.StateDB, origin comm
 		blockContext = context.getBlockContext()
 		chainConfig  = context.getChainConfig()
 		evmConfig    = vm.Config{
-			Debug:                   tracer != nil,
 			Tracer:                  tracer,
 			NoBaseFee:               false,
 			EnablePreimageRecording: false,
-			JumpTable:               nil,
 			ExtraEips:               nil,
 			InitialDepth:            context.InitialDepth,
 			ExternalContracts:       context.ExternalContracts,

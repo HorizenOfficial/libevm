@@ -33,27 +33,42 @@ public class StateDBTest extends LibEvmTestBase {
 
         Hash rootWithBalance1234;
         Hash rootWithBalance802;
+        Hash committedRoot;
 
         try (var db = new LevelDBDatabase(databaseFolder.getAbsolutePath())) {
             try (var statedb = new StateDB(db, Hash.ZERO)) {
                 var intermediateRoot = statedb.getIntermediateRoot();
                 assertEquals(
-                    "empty state should give the hash of an empty string as the root hash",
-                    StateDB.EMPTY_ROOT_HASH,
-                    intermediateRoot
+                        "empty state should give the hash of an empty string as the root hash",
+                        StateDB.EMPTY_ROOT_HASH,
+                        intermediateRoot
                 );
 
-                var committedRoot = statedb.commit();
+                committedRoot = statedb.commit();
                 assertEquals("committed root should equal intermediate root", intermediateRoot, committedRoot);
                 assertEquals(BigInteger.ZERO, statedb.getBalance(origin));
+            }
+            try (var statedb = new StateDB(db, StateDB.EMPTY_ROOT_HASH)) {
+                var intermediateRoot = statedb.getIntermediateRoot();
+                assertEquals(
+                        "empty state should give the hash of an empty string as the root hash",
+                        StateDB.EMPTY_ROOT_HASH,
+                        intermediateRoot
+                );
 
+                committedRoot = statedb.commit();
+                assertEquals("committed root should equal intermediate root", intermediateRoot, committedRoot);
+                assertEquals(BigInteger.ZERO, statedb.getBalance(origin));
+            }
+            try (var statedb = new StateDB(db, committedRoot)) {
                 statedb.addBalance(origin, v1234);
                 assertEquals(v1234, statedb.getBalance(origin));
                 assertNotEquals("intermediate root should not equal committed root anymore", committedRoot,
-                    statedb.getIntermediateRoot()
+                        statedb.getIntermediateRoot()
                 );
                 rootWithBalance1234 = statedb.commit();
-
+            }
+            try (var statedb = new StateDB(db, rootWithBalance1234)) {
                 var revisionId = statedb.snapshot();
                 statedb.subBalance(origin, v432);
                 assertEquals(v802, statedb.getBalance(origin));
@@ -66,7 +81,8 @@ public class StateDBTest extends LibEvmTestBase {
                 statedb.setNonce(origin, v3);
                 assertEquals(v3, statedb.getNonce(origin));
                 rootWithBalance802 = statedb.commit();
-
+            }
+            try (var statedb = new StateDB(db, rootWithBalance802)) {
                 statedb.setNonce(origin, v5);
                 assertEquals(v5, statedb.getNonce(origin));
             }
@@ -109,6 +125,7 @@ public class StateDBTest extends LibEvmTestBase {
         };
 
         Hash initialRoot;
+        Hash root;
         var roots = new ArrayList<Hash>();
 
         try (var db = new LevelDBDatabase(databaseFolder.getAbsolutePath())) {
@@ -118,16 +135,29 @@ public class StateDBTest extends LibEvmTestBase {
                 statedb.setNonce(origin, BigInteger.ONE);
                 assertFalse("account must exist after nonce increment", statedb.isEmpty(origin));
                 initialRoot = statedb.getIntermediateRoot();
-                for (var value : values) {
+                statedb.setStorage(origin, key, values[0]);
+                var retrievedValue = statedb.getStorage(origin, key);
+                assertEquals(values[0], retrievedValue);
+                root = statedb.commit();
+                // store the root hash of each state
+                roots.add(root);
+                var committedValue = statedb.getStorage(origin, key);
+                assertEquals(values[0], committedValue);
+            }
+            for (int i = 1; i < values.length; i++) {
+                try (var statedb = new StateDB(db, root)) {
+                    var value = values[i];
                     statedb.setStorage(origin, key, value);
                     var retrievedValue = statedb.getStorage(origin, key);
                     assertEquals(value, retrievedValue);
+                    root = statedb.commit();
                     // store the root hash of each state
-                    roots.add(statedb.commit());
+                    roots.add(root);
                     var committedValue = statedb.getStorage(origin, key);
                     assertEquals(value, committedValue);
                 }
             }
+
         }
 
         // verify that every committed state can be loaded again and that the stored values are still as expected
@@ -251,7 +281,7 @@ public class StateDBTest extends LibEvmTestBase {
         final var addr1 = new Address("0x1234561234561234561234561234561234561230");
 
         try (var db = new MemoryDatabase()) {
-            try (var statedb = new StateDB(db, Hash.ZERO)) {
+            try (var statedb = new StateDB(db, StateDB.EMPTY_ROOT_HASH)) {
                 // Test 1: non-existing account is an EOA account
                 assertTrue("EOA account expected", statedb.isEoaAccount(addr1));
                 assertFalse("EOA account expected", statedb.isSmartContractAccount(addr1));
@@ -275,7 +305,7 @@ public class StateDBTest extends LibEvmTestBase {
         final var address = new Address("0xcca577ee56d30a444c73f8fc8d5ce34ed1c7da8b");
 
         try (var db = new MemoryDatabase()) {
-            try (var statedb = new StateDB(db, Hash.ZERO)) {
+            try (var statedb = new StateDB(db, StateDB.EMPTY_ROOT_HASH)) {
                 statedb.addBalance(address, BigInteger.TEN);
                 statedb.setStorage(
                     address,
@@ -289,15 +319,15 @@ public class StateDBTest extends LibEvmTestBase {
                     padToHash(RlpEncoder.encode(RlpString.create(bytes("02"))))
                 );
 
-                statedb.commit();
+               var root =  statedb.commit();
 
                 // this should return the account proof with code hash, updated balance, empty storageProof
-                var resultA = statedb.getProof(address, null);
+                var resultA = statedb.getProof(address, root,null);
                 assertEquals(BigInteger.TEN, resultA.balance);
                 assertEquals(1, resultA.accountProof.length);
                 assertEquals(0, resultA.storageProof.length);
 
-                var resultB = statedb.getProof(address, new Hash[] {Hash.ZERO});
+                var resultB = statedb.getProof(address, root, new Hash[] {Hash.ZERO});
                 assertEquals(BigInteger.TEN, resultB.balance);
                 assertEquals(1, resultB.accountProof.length);
                 assertEquals(1, resultB.storageProof.length);
