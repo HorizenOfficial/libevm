@@ -74,6 +74,7 @@ func TestContracts(t *testing.T) {
 			Input:  Storage.Deploy(initialValue),
 			Gas:    200000,
 		},
+		Context: lib.EvmContext{Rules: &lib.ForkRules{IsShanghai: true}},
 	})
 	if result.ExecutionError != "" {
 		t.Fatalf("vm error: %v", result.ExecutionError)
@@ -94,6 +95,7 @@ func TestContracts(t *testing.T) {
 			Input:  Storage.Store(anotherValue),
 			Gas:    200000,
 		},
+		Context: lib.EvmContext{Rules: &lib.ForkRules{IsShanghai: true}},
 	})
 	// call function to retrieve value
 	resultRetrieve := call[lib.InvocationResult](t, instance, "EvmApply", lib.EvmParams{
@@ -104,6 +106,7 @@ func TestContracts(t *testing.T) {
 			Input:  Storage.Retrieve(),
 			Gas:    200000,
 		},
+		Context: lib.EvmContext{Rules: &lib.ForkRules{IsShanghai: true}},
 	})
 	if resultRetrieve.ExecutionError != "" {
 		t.Fatalf("vm error: %v", resultRetrieve.ExecutionError)

@@ -314,8 +314,8 @@ public class StateDB extends ResourceHandle {
      * @param sender      sender account
      * @param destination destination account
      */
-    public void accessSetup(Address sender, Address destination) {
-        LibEvm.invoke("AccessSetup", new AccessParams(handle, sender, destination));
+    public void accessSetup(Address sender, Address destination, ForkRules rules) {
+        LibEvm.invoke("AccessSetup", new AccessParams(handle, sender, destination, rules));
     }
 
     /**

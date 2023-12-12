@@ -48,6 +48,7 @@ func TestEvmDelegatecall(t *testing.T) {
 			Input:  test.DelegateReceiver.Deploy(),
 			Gas:    200000,
 		},
+		Context: EvmContext{Rules: &ForkRules{IsShanghai: true}},
 	})
 	if deployReceiverResult.ExecutionError != "" {
 		t.Fatalf("vm error: %v", deployReceiverResult.ExecutionError)
@@ -74,6 +75,7 @@ func TestEvmDelegatecall(t *testing.T) {
 			Input:  test.DelegateCaller.Deploy(),
 			Gas:    200000,
 		},
+		Context: EvmContext{Rules: &ForkRules{IsShanghai: true}},
 	})
 	if deployCallerResult.ExecutionError != "" {
 		t.Fatalf("vm error: %v", deployCallerResult.ExecutionError)
@@ -96,6 +98,7 @@ func TestEvmDelegatecall(t *testing.T) {
 			Input:  test.DelegateReceiver.Store(test1Value),
 			Gas:    200000,
 		},
+		Context: EvmContext{Rules: &ForkRules{IsShanghai: true}},
 	})
 	//retrieve value
 	_, receiverTestResult := instance.EvmApply(EvmParams{
@@ -106,6 +109,7 @@ func TestEvmDelegatecall(t *testing.T) {
 			Input:  test.DelegateReceiver.Retrieve(),
 			Gas:    200000,
 		},
+		Context: EvmContext{Rules: &ForkRules{IsShanghai: true}},
 	})
 	if receiverTestResult.ExecutionError != "" {
 		t.Fatalf("vm error: %v", receiverTestResult.ExecutionError)
@@ -125,6 +129,7 @@ func TestEvmDelegatecall(t *testing.T) {
 			Input:  test.DelegateCaller.Store(deployReceiverResult.ContractAddress, test2Value),
 			Gas:    200000,
 		},
+		Context: EvmContext{Rules: &ForkRules{IsShanghai: true}},
 	})
 	//retrieve value
 	_, callerTestResult := instance.EvmApply(EvmParams{
@@ -135,6 +140,7 @@ func TestEvmDelegatecall(t *testing.T) {
 			Input:  test.DelegateCaller.Retrieve(),
 			Gas:    200000,
 		},
+		Context: EvmContext{Rules: &ForkRules{IsShanghai: true}},
 	})
 	if callerTestResult.ExecutionError != "" {
 		t.Fatalf("vm error: %v", callerTestResult.ExecutionError)
