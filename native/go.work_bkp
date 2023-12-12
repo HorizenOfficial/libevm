@@ -1,7 +1,0 @@
-go 1.21
-
-use (
-	.
-	// use our local fork of go-ethereum
-	../go-ethereum
-)
