@@ -213,13 +213,19 @@ public class StateDBTest extends LibEvmTestBase {
         }
     }
 
-    private void testAccessListAccounts(StateDB statedb, Address sender, Address destination, Address other) {
+    private void testAccessListAccounts(StateDB statedb, Address sender, Address destination, Address other, Address coinbase, boolean isShanghai) {
         final var key1 = new Hash("0xbafe3b6f2a19658df3cb5efca158c93272ff5cff000000000000000000000001");
         final var key2 = new Hash("0xbafe3b6f2a19658df3cb5efca158c93272ff5cff000000000000000000000002");
 
-        statedb.accessSetup(sender, destination, new ForkRules(false));
+        statedb.accessSetup(sender, destination, coinbase, new ForkRules(isShanghai));
         assertTrue("sender must be on access list", statedb.accessAccount(sender));
         assertTrue("destination must be on access list", statedb.accessAccount(destination));
+        if (isShanghai){
+            assertTrue("coinbase must be on access list when Shanghai is active", statedb.accessAccount(coinbase));
+        }
+        else {
+            assertFalse("coinbase must not be on access list when Shanghai is not active", statedb.accessAccount(coinbase));
+        }
         assertFalse(
             "sender storage slot must not be on access list before first access",
             statedb.accessSlot(sender, key1)
@@ -262,17 +268,34 @@ public class StateDBTest extends LibEvmTestBase {
             new Address("0x0022002200220022002200220022002200220022"),
             new Address("0x0033003300330033003300330033003300330033"),
         };
+        Address coinbase = new Address("0xcc110011001100110011001100110011001100aa");
+        boolean isShanghai = false;
 
         try (var db = new MemoryDatabase()) {
             try (var statedb = new StateDB(db, StateDB.EMPTY_ROOT_HASH)) {
                 // test multiple permutations of the accounts in a row to make sure the access list is correctly reset
-                testAccessListAccounts(statedb, accounts[0], accounts[1], accounts[2]);
-                testAccessListAccounts(statedb, accounts[1], accounts[2], accounts[0]);
-                testAccessListAccounts(statedb, accounts[2], accounts[0], accounts[1]);
-                testAccessListAccounts(statedb, accounts[0], accounts[2], accounts[1]);
-                testAccessListAccounts(statedb, accounts[1], accounts[0], accounts[2]);
+                testAccessListAccounts(statedb, accounts[0], accounts[1], accounts[2], coinbase, isShanghai);
+                testAccessListAccounts(statedb, accounts[1], accounts[2], accounts[0], coinbase, isShanghai);
+                testAccessListAccounts(statedb, accounts[2], accounts[0], accounts[1], coinbase, isShanghai);
+                testAccessListAccounts(statedb, accounts[0], accounts[2], accounts[1], coinbase, isShanghai);
+                testAccessListAccounts(statedb, accounts[1], accounts[0], accounts[2], coinbase, isShanghai);
             }
         }
+
+        isShanghai = true;
+        try (var db = new MemoryDatabase()) {
+            try (var statedb = new StateDB(db, StateDB.EMPTY_ROOT_HASH)) {
+                // test multiple permutations of the accounts in a row to make sure the access list is correctly reset
+                testAccessListAccounts(statedb, accounts[0], accounts[1], accounts[2], coinbase, isShanghai);
+                testAccessListAccounts(statedb, accounts[1], accounts[2], coinbase, accounts[0], isShanghai);
+                testAccessListAccounts(statedb, accounts[2], coinbase, accounts[0], accounts[1], isShanghai);
+                testAccessListAccounts(statedb, coinbase, accounts[0], accounts[1], accounts[2], isShanghai);
+                testAccessListAccounts(statedb, accounts[0], accounts[2], accounts[1], coinbase, isShanghai);
+                testAccessListAccounts(statedb, accounts[1], accounts[0], accounts[2], coinbase, isShanghai);
+                testAccessListAccounts(statedb, coinbase, accounts[1], accounts[0], accounts[2], isShanghai);
+            }
+        }
+
     }
 
     @Test

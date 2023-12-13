@@ -5,11 +5,13 @@ import io.horizen.evm.ForkRules;
 
 public class AccessParams extends AccountParams {
     public final Address destination;
+    public final Address coinbase;
     public final ForkRules rules;
 
-    public AccessParams(int handle, Address sender, Address destination, ForkRules rules) {
+    public AccessParams(int handle, Address sender, Address destination, Address coinbase, ForkRules rules) {
         super(handle, sender);
         this.destination = destination;
+        this.coinbase = coinbase;
         this.rules = rules;
     }
 }
