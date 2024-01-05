@@ -26,7 +26,7 @@ public class StateDB extends ResourceHandle {
      * @param root root hash
      */
     public StateDB(Database db, Hash root) {
-        super(LibEvm.invoke("StateOpen", new OpenStateParams(db.handle, root), int.class));
+        super(LibEvm.invoke("StateOpen", new OpenStateParams(db.handle, root.equals(Hash.ZERO) ? EMPTY_ROOT_HASH : root), int.class));
     }
 
     /**
@@ -227,7 +227,7 @@ public class StateDB extends ResourceHandle {
     }
 
     /**
-     * Read comitted storage trie of given account.
+     * Read committed storage trie of given account.
      *
      * @param address account address
      * @param key     storage key
@@ -257,8 +257,8 @@ public class StateDB extends ResourceHandle {
      * @param storageKeys storage keys
      * @return proofs
      */
-    public ProofAccountResult getProof(Address address, Hash[] storageKeys) {
-        return LibEvm.invoke("StateGetProof", new ProofParams(handle, address, storageKeys), ProofAccountResult.class);
+    public ProofAccountResult getProof(Address address, Hash root, Hash[] storageKeys) {
+        return LibEvm.invoke("StateGetProof", new ProofParams(handle, address, root, storageKeys), ProofAccountResult.class);
     }
 
     /**

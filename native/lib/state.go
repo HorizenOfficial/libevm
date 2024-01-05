@@ -88,11 +88,13 @@ func (s *Service) StateCommit(params HandleParams) (error, common.Hash) {
 	if err != nil {
 		return err, common.Hash{}
 	}
-	hash, err := statedb.Commit(true)
+	//TODO ST we don't have a block number and it is not used in HashDB. It is used in PathDB, so maybe we can modify
+	//this in order to support the new type of db
+	hash, err := statedb.Commit(0, true)
 	if err != nil {
 		return err, common.Hash{}
 	}
-	err = statedb.Database().TrieDB().Commit(hash, false, nil)
+	err = statedb.Database().TrieDB().Commit(hash, false)
 	if err != nil {
 		return err, common.Hash{}
 	}

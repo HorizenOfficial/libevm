@@ -6,6 +6,7 @@ import (
 	"github.com/HorizenOfficial/go-ethereum/ethdb"
 	"github.com/HorizenOfficial/go-ethereum/log"
 	"github.com/HorizenOfficial/go-ethereum/trie"
+	"github.com/HorizenOfficial/go-ethereum/trie/triedb/hashdb"
 )
 
 type Database struct {
@@ -24,7 +25,7 @@ type LevelDBParams struct {
 func (s *Service) open(storage ethdb.Database) int {
 	db := &Database{
 		storage:  storage,
-		database: state.NewDatabaseWithConfig(storage, &trie.Config{Cache: 256}),
+		database: state.NewDatabaseWithConfig(storage, &trie.Config{HashDB: &hashdb.Config{CleanCacheSize: 256 * 1024 * 1024}}),
 	}
 	return s.databases.Add(db)
 }

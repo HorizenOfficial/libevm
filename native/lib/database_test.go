@@ -8,6 +8,7 @@ import (
 	"github.com/HorizenOfficial/go-ethereum/core/state"
 	"github.com/HorizenOfficial/go-ethereum/crypto"
 	"github.com/HorizenOfficial/go-ethereum/trie"
+	"github.com/HorizenOfficial/go-ethereum/trie/triedb/hashdb"
 	"math/big"
 	"testing"
 )
@@ -30,7 +31,7 @@ func init() {
 func benchDatabase(b *testing.B, leveldbCache int, trieCache int) {
 	// note: level db will always have at least 16MB of cache, even if giving 0 as the argument
 	storage, err := rawdb.NewLevelDBDatabase(b.TempDir(), leveldbCache, 0, "zen/db/data/", false)
-	db := state.NewDatabaseWithConfig(storage, &trie.Config{Cache: trieCache})
+	db := state.NewDatabaseWithConfig(storage, &trie.Config{HashDB: &hashdb.Config{CleanCacheSize: 256 * 1024 * 1024}})
 
 	var roots []common.Hash
 	root := common.Hash{}
@@ -41,13 +42,13 @@ func benchDatabase(b *testing.B, leveldbCache int, trieCache int) {
 			value := big.NewInt(int64(100000*i + run))
 			addr := addrs[i]
 			statedb.SetBalance(addr, value)
-			statedb.SetState(addr, addr.Hash(), common.BigToHash(value))
+			statedb.SetState(addr, common.BytesToHash(addr.Bytes()), common.BigToHash(value))
 		}
-		root, err = statedb.Commit(true)
+		root, err = statedb.Commit(0, true)
 		if err != nil {
 			b.Fatalf("failed to commit StateDB: %v", err)
 		}
-		err = statedb.Database().TrieDB().Commit(root, false, nil)
+		err = statedb.Database().TrieDB().Commit(root, false)
 		if err != nil {
 			b.Fatalf("failed to commit TrieDB: %v", err)
 		}
@@ -62,7 +63,7 @@ func benchDatabase(b *testing.B, leveldbCache int, trieCache int) {
 			if have := statedb.GetBalance(addr); have.Cmp(want) != 0 {
 				b.Fatalf("incorrect balance, have %v want %v", have, want)
 			}
-			if have := statedb.GetState(addr, addr.Hash()).Big(); have.Cmp(want) != 0 {
+			if have := statedb.GetState(addr, common.BytesToHash(addr.Bytes())).Big(); have.Cmp(want) != 0 {
 				b.Fatalf("incorrect state value, have %v want %v", have, want)
 			}
 		}

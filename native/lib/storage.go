@@ -23,7 +23,8 @@ type SetStorageParams struct {
 
 type ProofParams struct {
 	AccountParams
-	StorageKeys []string `json:"storageKeys"`
+	StorageKeys []string    `json:"storageKeys"`
+	Root        common.Hash `json:"root"`
 }
 
 func (s *Service) StateGetStorage(params StorageParams) (error, common.Hash) {
@@ -62,6 +63,6 @@ func (s *Service) StateGetProof(params ProofParams) (error, *geth_internal.Accou
 	if err != nil {
 		return err, nil
 	}
-	result, err := geth_internal.GetProof(statedb, params.Address, params.StorageKeys)
+	result, err := geth_internal.GetProof(statedb, params.Root, params.Address, params.StorageKeys)
 	return err, result
 }
