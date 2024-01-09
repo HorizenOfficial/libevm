@@ -217,7 +217,7 @@ public class StateDBTest extends LibEvmTestBase {
         final var key1 = new Hash("0xbafe3b6f2a19658df3cb5efca158c93272ff5cff000000000000000000000001");
         final var key2 = new Hash("0xbafe3b6f2a19658df3cb5efca158c93272ff5cff000000000000000000000002");
 
-        statedb.accessSetup(sender, destination);
+        statedb.accessSetup(sender, destination, new ForkRules(false));
         assertTrue("sender must be on access list", statedb.accessAccount(sender));
         assertTrue("destination must be on access list", statedb.accessAccount(destination));
         assertFalse(
@@ -242,7 +242,7 @@ public class StateDBTest extends LibEvmTestBase {
             statedb.accessAccount(other)
         );
         assertTrue(
-            "other account must be on access list after first acccess",
+            "other account must be on access list after first access",
             statedb.accessAccount(other)
         );
         assertFalse(

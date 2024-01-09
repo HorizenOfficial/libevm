@@ -7,7 +7,7 @@ import java.math.BigInteger;
 
 import static org.junit.Assert.*;
 
-public class EvmTest extends LibEvmTestBase {
+public class EvmShanghaiTest extends LibEvmTestBase {
 
     private final Address addr1 = new Address("0x1234561234561234561234561234561234561230");
     private final Address addr2 = new Address("0xbafe3b6f2a19658df3cb5efca158c93272ff5c0b");
@@ -26,10 +26,11 @@ public class EvmTest extends LibEvmTestBase {
     @Test
     public void evmApply() throws Exception {
         final var txHash = new Hash("0x4545454545454545454545454545454545454545454545454545454545454545");
-        final var codeHash = new Hash("0xaa87aee0394326416058ef46b907882903f3646ef2a6d0d20f9e705b87c58c77");
+        final var codeHash = new Hash("0x0da975461c7a624e3cdf7a15521193a91080dc259dd9fc1712e4b6245e69b98b");
 
+        // Storage contract
         final var contractCode = bytes(
-            "608060405234801561001057600080fd5b5060405161023638038061023683398101604081905261002f916100f6565b6000819055604051339060008051602061021683398151915290610073906020808252600c908201526b48656c6c6f20576f726c642160a01b604082015260600190565b60405180910390a2336001600160a01b03166000805160206102168339815191526040516100bf906020808252600a908201526948656c6c6f2045564d2160b01b604082015260600190565b60405180910390a26040517ffe1a3ad11e425db4b8e6af35d11c50118826a496df73006fc724cb27f2b9994690600090a15061010f565b60006020828403121561010857600080fd5b5051919050565b60f98061011d6000396000f3fe60806040526004361060305760003560e01c80632e64cec1146035578063371303c01460565780636057361d14606a575b600080fd5b348015604057600080fd5b5060005460405190815260200160405180910390f35b348015606157600080fd5b506068607a565b005b606860753660046086565b600055565b6000546075906001609e565b600060208284031215609757600080fd5b5035919050565b6000821982111560be57634e487b7160e01b600052601160045260246000fd5b50019056fea2646970667358221220769e4dd8320afae06d27e8e201c885728883af2ea321d02071c47704c1b3c24f64736f6c634300080e00330738f4da267a110d810e6e89fc59e46be6de0c37b1d5cd559b267dc3688e74e0");
+            "608060405234801561000f575f80fd5b5060405161022338038061022383398101604081905261002e916100f1565b5f81905560405133905f8051602061020383398151915290610070906020808252600c908201526b48656c6c6f20576f726c642160a01b604082015260600190565b60405180910390a2336001600160a01b03165f805160206102038339815191526040516100bb906020808252600a908201526948656c6c6f2045564d2160b01b604082015260600190565b60405180910390a26040517ffe1a3ad11e425db4b8e6af35d11c50118826a496df73006fc724cb27f2b99946905f90a150610108565b5f60208284031215610101575f80fd5b5051919050565b60ef806101145f395ff3fe608060405260043610602f575f3560e01c80632e64cec1146033578063371303c01460525780636057361d146065575b5f80fd5b348015603d575f80fd5b505f5460405190815260200160405180910390f35b348015605c575f80fd5b5060636074565b005b60636070366004607f565b5f55565b5f5460709060016095565b5f60208284031215608e575f80fd5b5035919050565b8082018082111560b357634e487b7160e01b5f52601160045260245ffd5b9291505056fea2646970667358221220cff9a74160cdc242b2991e2bcb39a3b2f59afe7aa8d55cc05bc5a5653a1512d164736f6c634300081700330738f4da267a110d810e6e89fc59e46be6de0c37b1d5cd559b267dc3688e74e0");
         final var testValue = new Hash("0x00000000000000000000000000000000000000000000000000000000000015b3");
 
         final var funcStore = bytes("6057361d");
@@ -39,12 +40,24 @@ public class EvmTest extends LibEvmTestBase {
         Address contractAddress;
         Hash modifiedStateRoot;
         byte[] calldata;
-
         try (var db = new MemoryDatabase()) {
             try (var statedb = new StateDB(db, Hash.ZERO)) {
+                var context = new EvmContext(BigInteger.ZERO,
+                        Address.ZERO,
+                        BigInteger.ZERO,
+                        BigInteger.ZERO,
+                        BigInteger.valueOf(100),
+                        BigInteger.ZERO,
+                        BigInteger.ZERO,
+                        Hash.ZERO,
+                        new ForkRules(true)) {
+                };
+
+
                 // test a simple value transfer
                 statedb.addBalance(addr1, v10m);
-                result = Evm.Apply(statedb, call(addr1, addr2, v5m, null), null);
+
+                result = Evm.Apply(statedb, call(addr1, addr2, v5m, null), context);
                 assertEquals("", result.executionError);
                 assertEquals(v5m, statedb.getBalance(addr2));
                 // gas fees should not have been deducted
@@ -55,7 +68,7 @@ public class EvmTest extends LibEvmTestBase {
                 // test contract deployment
                 calldata = concat(contractCode, Hash.ZERO.toBytes());
                 statedb.setTxContext(txHash, 0);
-                var createResult = Evm.Apply(statedb, create(addr2, calldata), null);
+                var createResult = Evm.Apply(statedb, create(addr2, calldata), context);
                 assertEquals("", createResult.executionError);
                 contractAddress = createResult.contractAddress;
                 assertEquals(codeHash, statedb.getCodeHash(contractAddress));
@@ -67,12 +80,11 @@ public class EvmTest extends LibEvmTestBase {
 
                 // call "store" function on the contract to set a value
                 calldata = concat(funcStore, testValue.toBytes());
-                result = Evm.Apply(statedb, call(addr2, contractAddress, null, calldata), null);
+                result = Evm.Apply(statedb, call(addr2, contractAddress, null, calldata), context);
                 assertEquals("", result.executionError);
 
                 // use a tracer for the next call to verify it is used
                 try (var tracer = new Tracer(new TraceOptions())) {
-                    var context = new EvmContext();
                     context.setTracer(tracer);
                     // call "retrieve" on the contract to fetch the value we just set
                     result = Evm.Apply(statedb, call(addr2, contractAddress, null, funcRetrieve), context);
@@ -89,7 +101,18 @@ public class EvmTest extends LibEvmTestBase {
 
             // reopen the state and retrieve a value
             try (var statedb = new StateDB(db, modifiedStateRoot)) {
-                result = Evm.Apply(statedb, call(addr2, contractAddress, null, funcRetrieve), null);
+                var context = new EvmContext(BigInteger.ZERO,
+                        Address.ZERO,
+                        BigInteger.ZERO,
+                        BigInteger.ZERO,
+                        BigInteger.valueOf(100),
+                        BigInteger.ZERO,
+                        BigInteger.ZERO,
+                        Hash.ZERO,
+                        new ForkRules(true)) {
+                };
+
+                result = Evm.Apply(statedb, call(addr2, contractAddress, null, funcRetrieve), context);
                 assertEquals("", result.executionError);
                 assertEquals(testValue, new Hash(result.returnData));
             }
@@ -100,7 +123,7 @@ public class EvmTest extends LibEvmTestBase {
     public void blockHashCallback() throws Exception {
         // compiled OpCodes.sol
         final var contractCode = bytes(
-            "608060405234801561001057600080fd5b50610157806100206000396000f3fe608060405234801561001057600080fd5b50600436106100935760003560e01c8063557ed1ba11610066578063557ed1ba146100bf578063564b81ef146100c55780639663f88f146100cb578063aacc5a17146100d3578063d1a82a9d146100d957600080fd5b806315e812ad146100985780631a93d1c3146100ad57806342cbb15c146100b3578063455259cb146100b9575b600080fd5b485b6040519081526020015b60405180910390f35b4561009a565b4361009a565b3a61009a565b4261009a565b4661009a565b61009a6100e7565b4461009a565b6040514181526020016100a4565b60006100f46001436100fa565b40905090565b8181038181111561011b57634e487b7160e01b600052601160045260246000fd5b9291505056fea2646970667358221220a629106cbdbc0017022eedc70f72757902db9dc7881e188747a544aaa638345d64736f6c63430008120033");
+            "608060405234801561000f575f80fd5b506101508061001d5f395ff3fe608060405234801561000f575f80fd5b5060043610610090575f3560e01c8063557ed1ba11610063578063557ed1ba146100bb578063564b81ef146100c15780639663f88f146100c7578063aacc5a17146100cf578063d1a82a9d146100d5575f80fd5b806315e812ad146100945780631a93d1c3146100a957806342cbb15c146100af578063455259cb146100b5575b5f80fd5b485b6040519081526020015b60405180910390f35b45610096565b43610096565b3a610096565b42610096565b46610096565b6100966100e3565b44610096565b6040514181526020016100a0565b5f6100ef6001436100f5565b40905090565b8181038181111561011457634e487b7160e01b5f52601160045260245ffd5b9291505056fea26469706673582212205ae73a119df6a090bb61fe66db79c9d12cbdc60577058ed72495cba356951bec64736f6c63430008170033");
         // signature for getBlockHash()
         final var funcBlockHash = bytes("9663f88f");
         final var blockHash = randomHash();
@@ -129,12 +152,22 @@ public class EvmTest extends LibEvmTestBase {
             var blockHashGetterB = new BlockHashGetter()
         ) {
             // deploy OpCode test contract
-            var createResult = Evm.Apply(statedb, create(addr1, contractCode), null);
+            var context = new EvmContext(BigInteger.ZERO,
+                    Address.ZERO,
+                    BigInteger.ZERO,
+                    BigInteger.ZERO,
+                    BigInteger.ZERO,
+                    BigInteger.ZERO,
+                    BigInteger.ZERO,
+                    Hash.ZERO,
+                    new ForkRules(true));
+
+            var createResult = Evm.Apply(statedb, create(addr1, contractCode), context);
             assertEquals("", createResult.executionError);
             var contractAddress = createResult.contractAddress;
 
             // setup context
-            var context = new EvmContext(BigInteger.ZERO,
+            context = new EvmContext(BigInteger.ZERO,
                     Address.ZERO,
                     BigInteger.ZERO,
                     BigInteger.ZERO,
@@ -142,8 +175,7 @@ public class EvmTest extends LibEvmTestBase {
                     BigInteger.ZERO,
                     BigInteger.ZERO,
                     Hash.ZERO,
-                    new ForkRules(true)){
-        };
+                    new ForkRules(true));
 
             //context.blockNumber = height;
             context.setBlockHashCallback(blockHashGetterA);
@@ -180,7 +212,7 @@ public class EvmTest extends LibEvmTestBase {
     public void invocationCallback() throws Exception {
         // compiled NativeInterop.sol
         final var contractCode = bytes(
-            "6080604052600080546001600160a01b031916692222222222222222222217905534801561002c57600080fd5b506107108061003c6000396000f3fe60806040526004361061004a5760003560e01c806324a084df1461004f57806367a7dbb414610064578063b63fc52914610079578063cb14b856146100a4578063e08b6262146100b9575b600080fd5b61006261005d3660046103d1565b6100ee565b005b34801561007057600080fd5b5061006261019d565b34801561008557600080fd5b5061008e610242565b60405161009b91906103fd565b60405180910390f35b3480156100b057600080fd5b506100626102c6565b3480156100c557600080fd5b506100d96100d436600461049a565b61031b565b60405163ffffffff909116815260200161009b565b600080836001600160a01b03163460405160006040518083038185875af1925050503d806000811461013c576040519150601f19603f3d011682016040523d82523d6000602084013e610141565b606091505b5091509150816101975760405162461bcd60e51b815260206004820152601860248201527f6661696c656420746f207472616e736665722076616c75650000000000000000604482015260640160405180910390fd5b50505050565b6000805460408051600481526024810182526020810180516001600160e01b031663f6ad3c2360e01b179052905183926001600160a01b031691612710916101e591906104d3565b6000604051808303818686f4925050503d8060008114610221576040519150601f19603f3d011682016040523d82523d6000602084013e610226565b606091505b50909250905081151560000361023e57805160208201fd5b5050565b606060008054906101000a90046001600160a01b03166001600160a01b031663f6ad3c236127106040518263ffffffff1660e01b81526004016000604051808303818786fa158015610298573d6000803e3d6000fd5b50505050506040513d6000823e601f3d908101601f191682016040526102c19190810190610572565b905090565b60008054604080517ff6ad3c23f0605b9ed84e6ad346e341d181873063303443c922270a3f389ee85e80825260048083019093526001600160a01b03909316939091602091839190829087612710f250505050565b60006001600160a01b03831663e08b626230610338856001610684565b6040516001600160e01b031960e085901b1681526001600160a01b03909216600483015263ffffffff1660248201526044016020604051808303816000875af19250505080156103a5575060408051601f3d908101601f191682019092526103a2918101906106b6565b60015b6103b05750806103b3565b90505b92915050565b6001600160a01b03811681146103ce57600080fd5b50565b600080604083850312156103e457600080fd5b82356103ef816103b9565b946020939093013593505050565b602080825282518282018190526000919060409081850190868401855b8281101561047b578151805185528681015187860152858101516001600160a01b031686860152606080820151908601526080808201519086015260a0908101516001600160f81b0319169085015260c0909301929085019060010161041a565b5091979650505050505050565b63ffffffff811681146103ce57600080fd5b600080604083850312156104ad57600080fd5b82356104b8816103b9565b915060208301356104c881610488565b809150509250929050565b6000825160005b818110156104f457602081860181015185830152016104da565b506000920191825250919050565b634e487b7160e01b600052604160045260246000fd5b60405160c0810167ffffffffffffffff8111828210171561053b5761053b610502565b60405290565b604051601f8201601f1916810167ffffffffffffffff8111828210171561056a5761056a610502565b604052919050565b6000602080838503121561058557600080fd5b825167ffffffffffffffff8082111561059d57600080fd5b818501915085601f8301126105b157600080fd5b8151818111156105c3576105c3610502565b6105d1848260051b01610541565b818152848101925060c09182028401850191888311156105f057600080fd5b938501935b828510156106785780858a03121561060d5760008081fd5b610615610518565b855181528686015187820152604080870151610630816103b9565b90820152606086810151908201526080808701519082015260a0808701516001600160f81b0319811681146106655760008081fd5b90820152845293840193928501926105f5565b50979650505050505050565b63ffffffff8181168382160190808211156106af57634e487b7160e01b600052601160045260246000fd5b5092915050565b6000602082840312156106c857600080fd5b81516106d381610488565b939250505056fea26469706673582212206fa1a6a9416df343205cf04e82be4d29a3914e50dccde29bd26f835048107a5264736f6c63430008140033");
+            "60806040525f80546001600160a01b031916692222222222222222222217905534801561002a575f80fd5b506106d3806100385f395ff3fe60806040526004361061004c575f3560e01c806367a7dbb4146100575780637d286e481461006d578063b63fc52914610080578063cb14b856146100aa578063e08b6262146100be575f80fd5b3661005357005b5f80fd5b348015610062575f80fd5b5061006b6100f2565b005b61006b61007b3660046103bb565b610192565b34801561008b575f80fd5b50610094610235565b6040516100a191906103dd565b60405180910390f35b3480156100b5575f80fd5b5061006b6102b4565b3480156100c9575f80fd5b506100dd6100d8366004610478565b610308565b60405163ffffffff90911681526020016100a1565b5f805460408051600481526024810182526020810180516001600160e01b031663f6ad3c2360e01b179052905183926001600160a01b0316916127109161013991906104af565b5f604051808303818686f4925050503d805f8114610172576040519150601f19603f3d011682016040523d82523d5f602084013e610177565b606091505b5090925090508115155f0361018e57805160208201fd5b5050565b5f816001600160a01b0316346040515f6040518083038185875af1925050503d805f81146101db576040519150601f19603f3d011682016040523d82523d5f602084013e6101e0565b606091505b505090508061018e5760405162461bcd60e51b815260206004820152601860248201527f6661696c656420746f207472616e736665722076616c75650000000000000000604482015260640160405180910390fd5b60605f8054906101000a90046001600160a01b03166001600160a01b031663f6ad3c236127106040518263ffffffff1660e01b81526004015f604051808303818786fa158015610287573d5f803e3d5ffd5b50505050506040513d5f823e601f3d908101601f191682016040526102af9190810190610549565b905090565b5f8054604080517ff6ad3c23f0605b9ed84e6ad346e341d181873063303443c922270a3f389ee85e80825260048083019093526001600160a01b03909316939091602091839190829087612710f250505050565b5f6001600160a01b03831663e08b626230610324856001610652565b6040516001600160e01b031960e085901b1681526001600160a01b03909216600483015263ffffffff1660248201526044016020604051808303815f875af1925050508015610390575060408051601f3d908101601f1916820190925261038d91810190610682565b60015b61039b57508061039e565b90505b92915050565b6001600160a01b03811681146103b8575f80fd5b50565b5f602082840312156103cb575f80fd5b81356103d6816103a4565b9392505050565b602080825282518282018190525f919060409081850190868401855b8281101561045a578151805185528681015187860152858101516001600160a01b031686860152606080820151908601526080808201519086015260a0908101516001600160f81b0319169085015260c090930192908501906001016103f9565b5091979650505050505050565b63ffffffff811681146103b8575f80fd5b5f8060408385031215610489575f80fd5b8235610494816103a4565b915060208301356104a481610467565b809150509250929050565b5f82515f5b818110156104ce57602081860181015185830152016104b4565b505f920191825250919050565b634e487b7160e01b5f52604160045260245ffd5b60405160c0810167ffffffffffffffff81118282101715610512576105126104db565b60405290565b604051601f8201601f1916810167ffffffffffffffff81118282101715610541576105416104db565b604052919050565b5f602080838503121561055a575f80fd5b825167ffffffffffffffff80821115610571575f80fd5b818501915085601f830112610584575f80fd5b815181811115610596576105966104db565b6105a4848260051b01610518565b818152848101925060c09182028401850191888311156105c2575f80fd5b938501935b828510156106465780858a0312156105dd575f80fd5b6105e56104ef565b855181528686015187820152604080870151610600816103a4565b90820152606086810151908201526080808701519082015260a0808701516001600160f81b031981168114610633575f80fd5b90820152845293840193928501926105c7565b50979650505050505050565b63ffffffff81811683821601908082111561067b57634e487b7160e01b5f52601160045260245ffd5b5092915050565b5f60208284031215610692575f80fd5b81516103d68161046756fea26469706673582212207b8cea8b1e89117bc40b5a45368ff07201c750c027aea485d58157abe1a51fcc64736f6c63430008170033");
         // signature for getForgerStakes() in NativeInterop.sol
         final var funcGetForgerStakes = bytes("b63fc529");
         // signature for getForgerStakesDelegateCall() in NativeInterop.sol
@@ -196,7 +228,17 @@ public class EvmTest extends LibEvmTestBase {
             var statedb = new StateDB(db, Hash.ZERO)
         ) {
             // deploy NativeInterop test contract
-            var createResult = Evm.Apply(statedb, create(addr1, contractCode), null);
+            var context = new EvmContext(BigInteger.ZERO,
+                    Address.ZERO,
+                    BigInteger.ZERO,
+                    BigInteger.ZERO,
+                    BigInteger.ZERO,
+                    BigInteger.ZERO,
+                    BigInteger.ZERO,
+                    Hash.ZERO,
+                    new ForkRules(true));
+
+            var createResult = Evm.Apply(statedb, create(addr1, contractCode), context);
             assertEquals("", createResult.executionError);
             var contractAddress = createResult.contractAddress;
 
@@ -215,7 +257,6 @@ public class EvmTest extends LibEvmTestBase {
             }
             try (var nativeContractCallback = new NativeContractCallback()) {
                 // setup context
-                var context = new EvmContext();
                 context.setExternalContracts(new Address[] {forgerStakesContractAddress});
                 context.setExternalCallback(nativeContractCallback);
                 context.setInitialDepth(20);
@@ -246,7 +287,17 @@ public class EvmTest extends LibEvmTestBase {
     @Test
     public void insufficientBalanceTransfer() throws Exception {
         try (var db = new MemoryDatabase(); var statedb = new StateDB(db, Hash.ZERO)) {
-            var result = Evm.Apply(statedb, call(addr1, addr2, v5m, null), null);
+            var context = new EvmContext(BigInteger.ZERO,
+                    Address.ZERO,
+                    BigInteger.ZERO,
+                    BigInteger.ZERO,
+                    BigInteger.valueOf(100),
+                    BigInteger.ZERO,
+                    BigInteger.ZERO,
+                    Hash.ZERO,
+                    new ForkRules(true)) {
+            };
+            var result = Evm.Apply(statedb, call(addr1, addr2, v5m, null), context);
             assertEquals("unexpected error message", "insufficient balance for transfer", result.executionError);
             assertEquals("unexpected gas usage", gasLimit, result.leftOverGas);
         }
@@ -258,10 +309,21 @@ public class EvmTest extends LibEvmTestBase {
             "5234801561001057600080fd521683398151915290610073906020808252600c90820190565b60405180910390a2336001600160a01b03");
         try (var db = new MemoryDatabase(); var statedb = new StateDB(db, Hash.ZERO)) {
             statedb.setBalance(addr1, v5m);
-            var result = Evm.Apply(statedb, create(addr1, input), null);
+            var context = new EvmContext(BigInteger.ZERO,
+                    Address.ZERO,
+                    BigInteger.ZERO,
+                    BigInteger.ZERO,
+                    BigInteger.valueOf(100),
+                    BigInteger.ZERO,
+                    BigInteger.ZERO,
+                    Hash.ZERO,
+                    new ForkRules(true)) {
+            };
+            var result = Evm.Apply(statedb, create(addr1, input), context);
             assertTrue("unexpected error message", result.executionError.startsWith("stack underflow"));
             assertEquals("unexpected gas usage", BigInteger.ZERO, result.leftOverGas);
         }
+
     }
 
     @Test
@@ -271,8 +333,18 @@ public class EvmTest extends LibEvmTestBase {
         var insufficientGasLimit = BigInteger.valueOf(50000);
         try (var db = new MemoryDatabase(); var statedb = new StateDB(db, Hash.ZERO)) {
             statedb.setBalance(addr1, v5m);
+            var context = new EvmContext(BigInteger.ZERO,
+                    Address.ZERO,
+                    BigInteger.ZERO,
+                    BigInteger.ZERO,
+                    BigInteger.valueOf(100),
+                    BigInteger.ZERO,
+                    BigInteger.ZERO,
+                    Hash.ZERO,
+                    new ForkRules(true)) {
+            };
             var result =
-                Evm.Apply(statedb, new Invocation(addr1, null, null, input, insufficientGasLimit, false), null);
+                Evm.Apply(statedb, new Invocation(addr1, null, null, input, insufficientGasLimit, false), context);
             assertEquals(
                 "unexpected error message",
                 "contract creation code storage out of gas",

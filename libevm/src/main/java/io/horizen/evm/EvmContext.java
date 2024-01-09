@@ -11,6 +11,7 @@ public class EvmContext {
     public final BigInteger time;
     public final BigInteger baseFee;
     public final Hash random;
+    public final ForkRules rules;
     private BlockHashCallback blockHashCallback;
     private Address[] externalContracts;
     private InvocationCallback externalCallback;
@@ -25,7 +26,8 @@ public class EvmContext {
                       BigInteger blockNumber,
                       BigInteger time,
                       BigInteger baseFee,
-                      Hash random) {
+                      Hash random,
+                      ForkRules rules) {
         this.chainID = chainID;
         this.coinbase = coinbase;
         this.gasLimit = gasLimit;
@@ -34,6 +36,7 @@ public class EvmContext {
         this.time = time;
         this.baseFee = baseFee;
         this.random = random;
+        this.rules = rules;
     }
 
     //This constructor is just for testing purposes
@@ -46,7 +49,8 @@ public class EvmContext {
         time = BigInteger.ZERO;
         baseFee = BigInteger.ZERO;
         random = Hash.ZERO;
-    };
+        rules = new ForkRules(false);
+    }
 
     public BlockHashCallback getBlockHashCallback() {
         return blockHashCallback;

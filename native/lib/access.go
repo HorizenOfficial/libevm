@@ -12,6 +12,7 @@ type AccessParams struct {
 	Coinbase    common.Address   `json:"coinbase"`
 	Destination *common.Address  `json:"destination"`
 	AccessList  types.AccessList `json:"accessList"`
+	Rules       *ForkRules       `json:"rules"`
 }
 
 type SlotParams struct {
@@ -24,8 +25,8 @@ func (s *Service) AccessSetup(params AccessParams) error {
 	if err != nil {
 		return err
 	}
-	//TODO ST For now Shanghai is not enabled but in the future we have to change here
-	statedb.Prepare(gethparams.Rules{IsBerlin: true, IsShanghai: false}, params.Address, params.Coinbase,
+	evmRules := gethparams.Rules{IsBerlin: true, IsShanghai: params.Rules.IsShanghai}
+	statedb.Prepare(evmRules, params.Address, params.Coinbase,
 		params.Destination, vm.PrecompiledAddressesBerlin, params.AccessList)
 	return nil
 }
