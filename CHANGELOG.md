@@ -1,12 +1,14 @@
 # Changelog
 
+## 1.1.0
+- Based on [HorizenOfficial/go-ethereum](https://github.com/HorizenOfficial/go-ethereum) `v1.1.0`
+(Shangai update)
+
 ## 1.0.0
 
 - Updated Go version to 1.21
 - Based on [HorizenOfficial/go-ethereum](https://github.com/HorizenOfficial/go-ethereum) `v1.0.0`
   - Support for interoperability between EVM and native smart contracts
-
-
 
 ## 0.1.0
 

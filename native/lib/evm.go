@@ -14,6 +14,10 @@ import (
 	"github.com/HorizenOfficial/go-ethereum/params"
 )
 
+type ForkRules struct {
+	IsShanghai bool `json:"isShanghai"`
+}
+
 type Invocation struct {
 	Caller   common.Address  `json:"caller"`
 	Callee   *common.Address `json:"callee"`
@@ -45,6 +49,7 @@ type EvmContext struct {
 	ExternalContracts []common.Address    `json:"externalContracts"`
 	ExternalCallback  *InvocationCallback `json:"externalCallback"`
 	InitialDepth      int                 `json:"initialDepth"`
+	Rules             *ForkRules          `json:"rules"`
 }
 
 // setDefaults for parameters that were omitted
@@ -71,6 +76,9 @@ func (c *EvmContext) setDefaults() {
 	if c.BaseFee == nil {
 		c.BaseFee = (*hexutil.Big)(big.NewInt(params.InitialBaseFee))
 	}
+	if c.Rules == nil {
+		c.Rules = &ForkRules{IsShanghai: false}
+	}
 }
 
 func (c *EvmContext) getBlockContext() vm.BlockContext {
@@ -81,7 +89,7 @@ func (c *EvmContext) getBlockContext() vm.BlockContext {
 		Coinbase:    c.Coinbase,
 		GasLimit:    uint64(c.GasLimit),
 		BlockNumber: c.BlockNumber.ToInt(),
-		Time:        c.Time.ToInt(),
+		Time:        c.Time.ToInt().Uint64(),
 		Difficulty:  common.Big0,
 		BaseFee:     c.BaseFee.ToInt(),
 		Random:      &c.Random,
@@ -89,6 +97,10 @@ func (c *EvmContext) getBlockContext() vm.BlockContext {
 }
 
 func (c *EvmContext) getChainConfig() *params.ChainConfig {
+	var shanghaiTime *uint64 = nil //When nil means is disabled (see "github.com/HorizenOfficial/go-ethereum/params/config.go")
+	if c.Rules.IsShanghai {
+		shanghaiTime = new(uint64) //When 0 means is enabled (see "github.com/HorizenOfficial/go-ethereum/params/config.go")
+	}
 	return &params.ChainConfig{
 		ChainID:             new(big.Int).SetUint64(uint64(c.ChainID)),
 		HomesteadBlock:      common.Big0,
@@ -104,6 +116,7 @@ func (c *EvmContext) getChainConfig() *params.ChainConfig {
 		MuirGlacierBlock:    common.Big0,
 		BerlinBlock:         common.Big0,
 		LondonBlock:         common.Big0,
+		ShanghaiTime:        shanghaiTime,
 	}
 }
 
@@ -140,11 +153,9 @@ func (s *Service) getEvm(context EvmContext, stateDB *state.StateDB, origin comm
 		blockContext = context.getBlockContext()
 		chainConfig  = context.getChainConfig()
 		evmConfig    = vm.Config{
-			Debug:                   tracer != nil,
 			Tracer:                  tracer,
 			NoBaseFee:               false,
 			EnablePreimageRecording: false,
-			JumpTable:               nil,
 			ExtraEips:               nil,
 			InitialDepth:            context.InitialDepth,
 			ExternalContracts:       context.ExternalContracts,

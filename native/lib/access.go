@@ -4,12 +4,15 @@ import (
 	"github.com/HorizenOfficial/go-ethereum/common"
 	"github.com/HorizenOfficial/go-ethereum/core/types"
 	"github.com/HorizenOfficial/go-ethereum/core/vm"
+	gethparams "github.com/HorizenOfficial/go-ethereum/params"
 )
 
 type AccessParams struct {
 	AccountParams
+	Coinbase    common.Address   `json:"coinbase"`
 	Destination *common.Address  `json:"destination"`
 	AccessList  types.AccessList `json:"accessList"`
+	Rules       *ForkRules       `json:"rules"`
 }
 
 type SlotParams struct {
@@ -22,7 +25,9 @@ func (s *Service) AccessSetup(params AccessParams) error {
 	if err != nil {
 		return err
 	}
-	statedb.PrepareAccessList(params.Address, params.Destination, vm.PrecompiledAddressesBerlin, params.AccessList)
+	evmRules := gethparams.Rules{IsBerlin: true, IsShanghai: params.Rules.IsShanghai}
+	statedb.Prepare(evmRules, params.Address, params.Coinbase,
+		params.Destination, vm.PrecompiledAddressesBerlin, params.AccessList)
 	return nil
 }
 

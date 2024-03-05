@@ -35,7 +35,8 @@ type Log struct {
 
 // Get converted logs, if there are any
 func getLogs(statedb *state.StateDB, txHash common.Hash) []*Log {
-	gethLogs := statedb.GetLogs(txHash, common.Hash{})
+	//TODO ST I don't know if 0 if a valid blockNumber in this case. The blockhash is empty, so I think the block number is not important
+	gethLogs := statedb.GetLogs(txHash, 0, common.Hash{})
 	logs := make([]*Log, len(gethLogs))
 	for i, log := range gethLogs {
 		logs[i] = &Log{
@@ -73,6 +74,6 @@ func (s *Service) StateSetTxContext(params SetTxContextParams) error {
 	if err != nil {
 		return err
 	}
-	statedb.Prepare(params.TxHash, params.TxIndex)
+	statedb.SetTxContext(params.TxHash, params.TxIndex)
 	return nil
 }

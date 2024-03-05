@@ -28,6 +28,7 @@ func TestEvmOpCodes(t *testing.T) {
 			Input:  test.OpCodes.Deploy(),
 			Gas:    200000,
 		},
+		Context: EvmContext{Rules: &ForkRules{IsShanghai: true}},
 	})
 	if resultDeploy.ExecutionError != "" {
 		t.Fatalf("vm error: %v", resultDeploy.ExecutionError)
@@ -112,6 +113,7 @@ func TestEvmOpCodes(t *testing.T) {
 					BaseFee:           (*hexutil.Big)(baseFee),
 					Random:            random,
 					BlockHashCallback: &BlockHashCallback{Callback(blockHashCallbackHandle)},
+					Rules:             &ForkRules{IsShanghai: true},
 				},
 			})
 			if err != nil {
@@ -143,6 +145,7 @@ func TestEvmExternalContracts(t *testing.T) {
 			Input:  test.NativeInterop.Deploy(),
 			Gas:    500000,
 		},
+		Context: EvmContext{Rules: &ForkRules{IsShanghai: true}},
 	})
 	if deployResult.ExecutionError != "" {
 		t.Fatalf("vm error: %v", deployResult.ExecutionError)
@@ -195,6 +198,7 @@ func TestEvmExternalContracts(t *testing.T) {
 			ExternalContracts: []common.Address{forgerStakesContractAddress},
 			ExternalCallback:  &InvocationCallback{Callback(invocationCallbackHandle)},
 			InitialDepth:      20,
+			Rules:             &ForkRules{IsShanghai: true},
 		},
 	})
 	if callResult.ExecutionError != "" {
@@ -212,6 +216,7 @@ func TestEvmExternalContracts(t *testing.T) {
 		Context: EvmContext{
 			ExternalContracts: []common.Address{forgerStakesContractAddress},
 			ExternalCallback:  &InvocationCallback{Callback(invocationCallbackHandle)},
+			Rules:             &ForkRules{IsShanghai: true},
 		},
 	})
 	if !strings.Contains(delegateCallResult.ExecutionError, "unsupported call method") {
@@ -236,6 +241,7 @@ func TestEvmErrors(t *testing.T) {
 			Input:  test.Storage.Deploy(common.Big0),
 			Gas:    200000,
 		},
+		Context: EvmContext{Rules: &ForkRules{IsShanghai: true}},
 	})
 	if resultDeploy.ExecutionError != "" {
 		t.Fatalf("vm error: %v", resultDeploy.ExecutionError)
@@ -261,6 +267,7 @@ func TestEvmErrors(t *testing.T) {
 					Value:  (*hexutil.Big)(big.NewInt(1001)),
 					Gas:    100,
 				},
+				Context: EvmContext{Rules: &ForkRules{IsShanghai: true}},
 			},
 		},
 		{
@@ -273,6 +280,7 @@ func TestEvmErrors(t *testing.T) {
 					Input:  test.Storage.Deploy(common.Big0),
 					Gas:    123,
 				},
+				Context: EvmContext{Rules: &ForkRules{IsShanghai: true}},
 			},
 		},
 		{
@@ -285,6 +293,7 @@ func TestEvmErrors(t *testing.T) {
 					Input:  test.Storage.Deploy(common.Big0),
 					Gas:    50000,
 				},
+				Context: EvmContext{Rules: &ForkRules{IsShanghai: true}},
 			},
 		},
 		{
@@ -300,6 +309,7 @@ func TestEvmErrors(t *testing.T) {
 					Input:  test.Storage.Deploy(common.Big0),
 					Gas:    200000,
 				},
+				Context: EvmContext{Rules: &ForkRules{IsShanghai: true}},
 			},
 		},
 		{
@@ -314,6 +324,7 @@ func TestEvmErrors(t *testing.T) {
 					Input:  common.FromHex("01020304"),
 					Gas:    200000,
 				},
+				Context: EvmContext{Rules: &ForkRules{IsShanghai: true}},
 			},
 		},
 		{
@@ -327,6 +338,7 @@ func TestEvmErrors(t *testing.T) {
 					Input:  test.Storage.Store(common.Big3),
 					Gas:    2000,
 				},
+				Context: EvmContext{Rules: &ForkRules{IsShanghai: true}},
 			},
 		},
 		{
@@ -341,6 +353,7 @@ func TestEvmErrors(t *testing.T) {
 					Gas:      200000,
 					ReadOnly: true,
 				},
+				Context: EvmContext{Rules: &ForkRules{IsShanghai: true}},
 			},
 		},
 	}
@@ -358,4 +371,46 @@ func TestEvmErrors(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestShanghaiFork(t *testing.T) {
+	var (
+		instance, _, stateHandle = SetupTest()
+		user                     = common.HexToAddress("0x42")
+	)
+
+	// Test that deploying a contract compiled for Shanghai fails if fork is not active
+
+	// deploy "OpCodes" contract
+	_, resultDeploy := instance.EvmApply(EvmParams{
+		HandleParams: HandleParams{Handle: stateHandle},
+		Invocation: Invocation{
+			Caller: user,
+			Callee: nil,
+			Input:  test.OpCodes.Deploy(),
+			Gas:    200000,
+		},
+		Context: EvmContext{Rules: &ForkRules{IsShanghai: false}},
+	})
+	if resultDeploy.ExecutionError != "invalid opcode: PUSH0" {
+		t.Fatalf("vm error: %v", resultDeploy.ExecutionError)
+	}
+
+	// Same with Shanghai active, the deployment should succeed
+
+	// deploy "OpCodes" contract
+	_, resultDeploy = instance.EvmApply(EvmParams{
+		HandleParams: HandleParams{Handle: stateHandle},
+		Invocation: Invocation{
+			Caller: user,
+			Callee: nil,
+			Input:  test.OpCodes.Deploy(),
+			Gas:    200000,
+		},
+		Context: EvmContext{Rules: &ForkRules{IsShanghai: true}},
+	})
+	if resultDeploy.ExecutionError != "" {
+		t.Fatalf("vm error: %v", resultDeploy.ExecutionError)
+	}
+
 }

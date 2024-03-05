@@ -37,8 +37,8 @@ func TestRawStateDB(t *testing.T) {
 		t.Error("snapshot rollback failed")
 	}
 	statedb.SetState(addr, key, value)
-	hash, _ := statedb.Commit(true)
-	_ = statedb.Database().TrieDB().Commit(hash, false, nil)
+	hash, _ := statedb.Commit(0, true)
+	_ = statedb.Database().TrieDB().Commit(hash, false)
 	committedValue := statedb.GetState(addr, key)
 	if committedValue != value {
 		t.Error("value not committed correctly")

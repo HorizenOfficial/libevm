@@ -35,8 +35,10 @@ func getTracerResult(t *testing.T, params TracerCreateParams) *TracerResult {
 		Context: EvmContext{
 			BaseFee: (*hexutil.Big)(new(big.Int)),
 			Tracer:  &tracerHandle,
+			Rules:   &ForkRules{IsShanghai: true},
 		},
 	})
+
 	if err != nil {
 		t.Fatal(err)
 	}
