@@ -38,8 +38,8 @@ github.com/CloudyKit/fastprinter v0.0.0-20170127035650-74b38d55f37a/go.mod h1:EF
 github.com/CloudyKit/jet v2.1.3-0.20180809161101-62edd43e4f88+incompatible/go.mod h1:HPYO+50pSWkPoj9Q/eq0aRGByCL6ScRlUmiEX5Zgm+w=
 github.com/DataDog/zstd v1.4.5 h1:EndNeuB0l9syBZhut0wns3gV1hL8zX8LIu6ZiVHWLIQ=
 github.com/DataDog/zstd v1.4.5/go.mod h1:1jcaCB/ufaK+sKp1NBhlGmpz41jOoPQ35bpF36t7BBo=
-github.com/HorizenOfficial/go-ethereum v1.1.0-snapshot3 h1:F57iRtDClo1UXRQ9iIRLUW1+ivawCsKHexdlH0aTFRA=
-github.com/HorizenOfficial/go-ethereum v1.1.0-snapshot3/go.mod h1:Xurm/mFGe4vo6soNWfMqbH4oJmbyOc5DxVFrPxH3ul4=
+github.com/HorizenOfficial/go-ethereum v1.1.0 h1:C78Oi4lBQZJSz+6iWMkAyHdHuYWYWDiYytbM2AVZXqs=
+github.com/HorizenOfficial/go-ethereum v1.1.0/go.mod h1:Xurm/mFGe4vo6soNWfMqbH4oJmbyOc5DxVFrPxH3ul4=
 github.com/Joker/hpp v1.0.0/go.mod h1:8x5n+M1Hp5hC0g8okX3sR3vFQwynaX/UgSOM9MeBKzY=
 github.com/Joker/jade v1.0.1-0.20190614124447-d475f43051e7/go.mod h1:6E6s8o2AE4KhCrqr6GRJjdC/gNfTdxkIXvuGZZda2VM=
 github.com/Microsoft/go-winio v0.6.1 h1:9/kr64B9VUZrLm5YYwbGtUJnMgqWVOdUAXu6Migciow=
