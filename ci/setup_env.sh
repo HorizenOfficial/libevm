@@ -78,7 +78,7 @@ if [ -n "${TRAVIS_TAG}" ]; then
     for release_branch in "${prod_release_br_list[@]}"; do
       if ( git branch -r --contains "${TRAVIS_TAG}" | grep -xqE ". origin\/${release_branch}$" ); then
         # Checking format of production release pom version
-        if ! [[ "${pom_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-RC[0-9]+)?$ ]]; then
+        if ! [[ "${pom_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
           echo "Warning: package(s) version is in the wrong format for PRODUCTION} release. Expecting: d.d.d(-RC[0-9]+)?. The build is not going to be released !!!"
           export PUBLISH_BUILD="false"
         fi
@@ -99,8 +99,26 @@ if [ -n "${TRAVIS_TAG}" ]; then
     done
     if [ "${prod_release}" = "false" ]; then
       # Checking if package version matches DEV release version
-      if ! [[ "${pom_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-RC[0-9]+)?(-SNAPSHOT){1}$ ]]; then
-        echo "Warning: package(s) version is in the wrong format for DEVELOPMENT release. Expecting: d.d.d(-RC[0-9]+)?(-SNAPSHOT){1}. The build is not going to be released !!!"
+      if [[ "${pom_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-SNAPSHOT){1}$ ]]; then
+        if [[ "${TRAVIS_TAG}" =~ "${pom_version}"[0-9]*$ ]]; then
+          echo "" && echo "=== Development release ===" && echo ""
+          export PUBLISH_BUILD="true"
+        else
+          echo "" && echo "=== Warning: GIT tag format differs from the pom file version. ===" && echo ""
+          echo -e "Github tag name: ${TRAVIS_TAG}\nPom file version: ${ROOT_POM_VERSION}.\nThe build is not going to be released !!!"
+          export PUBLISH_BUILD="false"
+        fi
+      elif [[ "${pom_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-RC[0-9]+){1}$ ]]; then
+        if [[ "${TRAVIS_TAG}" == "${pom_version}" ]]; then
+          echo "" && echo "=== RC release ===" && echo ""
+          export PUBLISH_BUILD="true"
+        else
+          echo "" && echo "=== Warning: GIT tag format differs from the pom file version. ===" && echo ""
+          echo -e "Github tag name: ${TRAVIS_TAG}\nPom file version: ${ROOT_POM_VERSION}.\nThe build is not going to be released !!!"
+          export PUBLISH_BUILD="false"
+        fi
+      else
+        echo "Warning: package(s) version is in the wrong format for DEVELOPMENT or RC release. Expecting: d.d.d(-SNAPSHOT){1} or d.d.d(-RC[0-9]+){1}. The build is not going to be released !!!"
         export PUBLISH_BUILD="false"
       fi
 
