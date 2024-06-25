@@ -19,30 +19,31 @@ type DatabaseParams struct {
 }
 
 type LevelDBParams struct {
-	Path string `json:"path"`
+	Path      string `json:"path"`
+	Preimages bool   `json:"preimages"`
 }
 
-func (s *Service) open(storage ethdb.Database) int {
+func (s *Service) open(storage ethdb.Database, preimages bool) int {
 	db := &Database{
 		storage:  storage,
-		database: state.NewDatabaseWithConfig(storage, &trie.Config{HashDB: &hashdb.Config{CleanCacheSize: 256 * 1024 * 1024}}),
+		database: state.NewDatabaseWithConfig(storage, &trie.Config{HashDB: &hashdb.Config{CleanCacheSize: 256 * 1024 * 1024}, Preimages: preimages}),
 	}
 	return s.databases.Add(db)
 }
 
 func (s *Service) DatabaseOpenMemoryDB() int {
 	log.Info("initializing memorydb")
-	return s.open(rawdb.NewMemoryDatabase())
+	return s.open(rawdb.NewMemoryDatabase(), false)
 }
 
 func (s *Service) DatabaseOpenLevelDB(params LevelDBParams) (error, int) {
-	log.Info("initializing leveldb", "path", params.Path)
+	log.Info("initializing leveldb", "path", params.Path, "preimages", params.Preimages)
 	storage, err := rawdb.NewLevelDBDatabase(params.Path, 256, 0, "zen/db/data/", false)
 	if err != nil {
 		log.Error("failed to initialize database", "error", err)
 		return err, 0
 	}
-	return nil, s.open(storage)
+	return nil, s.open(storage, params.Preimages)
 }
 
 func (s *Service) DatabaseClose(params DatabaseParams) error {
