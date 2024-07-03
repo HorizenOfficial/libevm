@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.0
+- Added support for state dump
+
 ## 1.1.0
 - Based on [HorizenOfficial/go-ethereum](https://github.com/HorizenOfficial/go-ethereum) `v1.1.0`
 (Shangai update)
