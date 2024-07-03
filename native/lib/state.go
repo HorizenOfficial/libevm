@@ -7,6 +7,7 @@ import (
 	"github.com/HorizenOfficial/go-ethereum/core/vm"
 	"github.com/HorizenOfficial/go-ethereum/crypto"
 	"github.com/HorizenOfficial/go-ethereum/log"
+	"os"
 )
 
 var emptyCodeHash = crypto.Keccak256Hash(nil)
@@ -43,6 +44,11 @@ type CodeParams struct {
 type SnapshotParams struct {
 	HandleParams
 	RevisionId int `json:"revisionId"`
+}
+
+type DumpParams struct {
+	HandleParams
+	DumpFile string `json:"dumpFile"`
 }
 
 // StateOpen will create a new state at the given root hash.
@@ -224,5 +230,28 @@ func (s *Service) StateRevertToSnapshot(params SnapshotParams) error {
 		return err
 	}
 	statedb.RevertToSnapshot(params.RevisionId)
+	return nil
+}
+
+func (s *Service) StateDump(params DumpParams) error {
+	err, statedb := s.statedbs.Get(params.Handle)
+	if err != nil {
+		return err
+	}
+	file, err := os.Create(params.DumpFile)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	opts := &state.DumpConfig{
+		SkipCode:    false,
+		SkipStorage: false,
+	}
+	_, err = file.WriteString(string(statedb.Dump(opts)))
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
