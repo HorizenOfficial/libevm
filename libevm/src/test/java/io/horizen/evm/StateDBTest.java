@@ -1,5 +1,9 @@
 package io.horizen.evm;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 import io.horizen.evm.params.HandleParams;
 import io.horizen.evm.params.OpenStateParams;
 import org.junit.Rule;
@@ -9,8 +13,12 @@ import org.web3j.rlp.RlpEncoder;
 import org.web3j.rlp.RlpString;
 import sparkz.crypto.hash.Keccak256;
 
+import java.io.File;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import static org.junit.Assert.*;
 
@@ -366,4 +374,74 @@ public class StateDBTest extends LibEvmTestBase {
             }
         }
     }
+
+    @Test
+    public void dump() throws Exception {
+        final var databaseFolder = tempFolder.newFolder("account-db");
+        final var key = new Hash("0xbafe3b6f2a19658df3cb5efca158c93272ff5cff010101010101010102020202");
+        final Hash[] values = {
+                new Hash("0x0000000000000000000000000000000000000000000000000000000000000001"),
+        };
+        final var codeString = "aa87aee0394326416058ef46b907882903f3646ef2a6d0d20f9e705b87c58c77";
+        final var code = bytes(codeString);
+
+        Hash rootHash;
+        ArrayList<Address> addresses = new ArrayList<>();
+        try (var db = new LevelDBDatabase(databaseFolder.getAbsolutePath(), true)) {
+            try (var statedb = new StateDB(db, StateDB.EMPTY_ROOT_HASH)) {
+                for (int i = 10; i < 20; i++) {
+                    var address = new Address("0xbafe3b6f2a19658df3cb5efca158c93272ff5c" + i);
+                    addresses.add(address);
+                    statedb.setNonce(address, BigInteger.ONE);
+                    statedb.setCode(address, code);
+                    for (int j = 0; j < values.length; j++) {
+                        var value = values[j];
+                        statedb.setStorage(address, key, value);
+                    }
+                }
+                rootHash = statedb.commit();
+                // store the root hash of each state
+            }
+
+        }
+
+        String dumpFile = System.getProperty("java.io.tmpdir") + File.separator + "dump.json";
+        try (var db = new LevelDBDatabase(databaseFolder.getAbsolutePath(), true)) {
+            try (var statedb = new StateDB(db, rootHash)) {
+                statedb.dump(dumpFile);
+            }
+        }
+
+        byte[] jsonData = Files.readAllBytes(Paths.get(dumpFile));
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonTreeRootNode = objectMapper.readTree(jsonData);
+        JsonNode rootFieldNode = jsonTreeRootNode.path("root");
+        assertEquals(rootHash.toStringNoPrefix(), rootFieldNode.asText());
+
+        JsonNode accountsNode = jsonTreeRootNode.path("accounts");
+        Iterator<JsonNode> elements = accountsNode.elements();
+        assertEquals(addresses.size(), Iterators.size(elements));
+        for (Address a: addresses) {
+            JsonNode addressNode = accountsNode.get(a.toString());
+            assertEquals(0, addressNode.get("balance").asInt());
+            assertEquals(1, addressNode.get("nonce").asInt());
+            assertEquals("0x" + codeString, addressNode.get("code").asText());
+            assertEquals(values.length, Iterators.size(addressNode.get("storage").elements()));
+        }
+
+        // test that if the file is not writable, executing dump results in an error
+
+        File readonlyFile = tempFolder.newFile("readonly.json");
+        readonlyFile.setReadOnly();
+        try (var db = new LevelDBDatabase(databaseFolder.getAbsolutePath(), true)) {
+            try (var statedb = new StateDB(db, rootHash)) {
+                assertThrows(
+                        LibEvmException.class,
+                        () -> statedb.dump(readonlyFile.getAbsolutePath())
+                ).getMessage().contains("access denied");
+            }
+        }
+    }
+
+
 }

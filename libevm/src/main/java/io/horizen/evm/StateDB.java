@@ -279,6 +279,11 @@ public class StateDB extends ResourceHandle {
         LibEvm.invoke("StateRevertToSnapshot", new SnapshotParams(handle, revisionId));
     }
 
+    public void dump(String dumpFile) {
+        LibEvm.invoke("StateDump", new DumpParams(handle, dumpFile));
+    }
+
+
     /**
      * Get log entries created during the execution of given transaction.
      *
